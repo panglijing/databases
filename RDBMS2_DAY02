@@ -1,0 +1,244 @@
+++++++++++++++RDBMS2_DAY02-----
+	1 数据读写分离
+		1.1  数据读写分离介绍(什么是数据读写分离) 
+			   数据存储服务结构，把客户端查询数据的select 访问和  写入数据的insert update delete 访问 分别给不同的数据库服务器处理。
+
+ 
+		1.2  为什么要使用数据读写分离结构存储数据？
+			分析：减轻主服务器的工作压力
+
+			如何实现数据读写分离？？？
+				客户端实现：程序员编写访问数据库的网站脚本实现( PHP   JAVA)
+						
+
+				服务器端实现: 通过实现数据读写分离的服务软件。部署服务器实现
+						     
+					      MySQL中间件 （mysql-proxy 、 mycat 、 maxscale ）
+
+
+		1.3  配置数据读写分离结构
+			1.3.1  拓扑结构
+			1.3.2  服务器角色
+			1.3.3  配置步骤如下
+				1  配置MySQL主从同步
+					1.1 配置主服务器51
+						启用binlog日志  用户授权   查看日志信息
+
+					1.2 配置从服务器52
+						 修改配置文件指定servr_id  并重启数据库服务
+						 确保与主服务器数据一致
+						 指定主服务器信息
+						 启动slave进程
+						 查看状态的
+
+				2  配置数据读写分离服务器 192.168.4.57
+
+					2.1 安装软件
+					    rpm  -ivh  maxscale-2.1.2-1.rhel.7.x86_64.rpm
+
+					2.2 修改配置文件
+
+						配置项说明
+						[maxscale]   线程的数量
+						[server1]    定义第1台数据库服务器的ip地址
+						[server2]    定义第2台数据库服务器的ip地址
+						[MySQL Monitor]  定义监视数据库服务器server1 和server2
+						#[Read-Only Service] 不定义只读服务
+						[Read-Write Service]  定义读写分离服务
+						
+						[MaxAdmin Service]  管理服务
+						
+						 #[Read-Only Listener] 不定义只读服务
+
+						 [Read-Write Listener]  定义读写分离服务使用的端口号
+						 [MaxAdmin Listener]  定义管理服务使用的端口
+
+						
+                                                [root@host57 ~]# cp /etc/maxscale.cnf /root/ 备份文件
+						 
+						[root@host57 ~]# vim /etc/maxscale.cnf  编辑文件
+						[maxscale]   线程的数量
+						threads=auto
+						
+						[server1]    定义第1台数据库服务器的ip地址
+						type=server
+						address=192.168.4.51
+						port=3306
+						protocol=MySQLBackend
+
+
+						[server2]   定义第2台数据库服务器的ip地址
+						type=server
+						address=192.168.4.52
+						port=3306
+						protocol=MySQLBackend
+
+						[MySQL Monitor]  定义监视数据库服务器server1 和server2
+						type=monitor
+						module=mysqlmon
+						servers=server1,server2
+						user=plj             监控用户
+						passwd=123qqq...A    密码
+						monitor_interval=10000
+
+ 53 #[Read-Only Service]
+ 54 #type=service
+ 55 #router=readconnroute
+ 56 #servers=server1
+ 57 #user=myuser
+ 58 #passwd=mypwd
+ 59 #router_options=slave
+				
+		
+			
+			  [Read-Write Service]  定义读写分离服务
+				type=service
+				router=readwritesplit
+				servers=server1,server2
+				user=jing           路由用户
+				passwd=123qqq...A   密码
+				max_slave_connections=100%   
+
+ 
+			[MaxAdmin Service]  管理服务
+ 			type=service
+ 			router=cli
+	
+ #[Read-Only Listener]
+ #type=listener
+ #service=Read-Only Service
+ #protocol=MySQLClient
+ #port=4008
+
+ 			[Read-Write Listener]  定义读写分离服务使用的端口号
+			type=listener
+			service=Read-Write Service
+			protocol=MySQLClient
+			port=4006 端口号 可以自定义  
+
+			[MaxAdmin Listener] 定义管理服务使用的端口
+			type=listener
+			service=MaxAdmin Service
+			protocol=maxscaled
+			socket=default
+			port=4016 端口号 可以自定义
+
+ :wq		
+ 					2.3 配置数据库服务器：在192.168.4.51 和 192.168.4.52 添加用户
+							监控用户plj ：监控数据库服务器的用户
+
+			mysql> grant  replication slave, replication client  on *.*  to plj@"%" identified by "123qqq...A";		    
+							路由用户jing ：检查连接自己的用户是否在数据库服务器上存在
+
+ 			mysql> grant select on mysql.*  to  jing@"%" identified by "123qqq...A" ;
+
+		       [root@host52 ~]# mysql -uroot -p123qqq...A -e 'select user from mysql.user where user in ("plj","jing")'
+
+					2.4 启动读写分离服务 192.168.4.57
+						[root@host57 ~]# systemctl  stop mysqld
+						[root@host57 ~]# systemctl  disable mysqld
+						[root@host57 ~]# maxscale  -f /etc/maxscale.cnf 启动服务
+								 kill -9 pid号  停止服务
+
+						
+					2.5 查看服务状态
+ [root@host57 ~]# ps -C maxscale
+   PID TTY          TIME CMD
+  3813 ?        00:00:01 maxscale
+[root@host57 ~]# 
+[root@host57 ~]# netstat  -utnlp  | grep maxscale
+tcp6       0      0 :::4006                 :::*                    LISTEN      3813/maxscale       
+tcp6       0      0 :::4016                 :::*                    LISTEN      3813/maxscale       
+[root@host57 ~]# 
+		      
+					2.6 测试配置  
+						2.6.1 访问本机的管理服务查看监控信息
+					
+ [root@host57 ~]# maxadmin -uadmin  -pmariadb -P4016
+MaxScale> 
+MaxScale> list servers
+Servers.
+-------------------+-----------------+-------+-------------+--------------------
+Server             | Address         | Port  | Connections | Status              
+-------------------+-----------------+-------+-------------+--------------------
+server1            | 192.168.4.51    |  3306 |           0 | Master, Running
+server2            | 192.168.4.52    |  3306 |           0 | Slave, Running
+-------------------+-----------------+-------+-------------+--------------------
+MaxScale> 
+MaxScale> exit
+[root@host57 ~]# 				时间到 17:10 		
+						2.6.2  客户端可以连接读写分离服务器57 执行insert  和 select 操作
+							 1 在主服务器上添加访问数据的连接用户
+		mysql> grant select , insert on  buydb2.* to  jingyaya@"%" identified by "123qqq...A";
+                mysql> create database buydb2;
+                mysql> create table  buydb2.t1(id int);
+
+							 2 在从服务器查看是否同步授权用户
+		[root@host52 ~]# mysql -uroot -p123qqq...A -e 'desc buydb2.t1'
+		[root@host52 ~]# mysql -uroot -p123qqq...A -e 'select user from mysql.user where user="jingyaya"'
+
+							 3 客户端使用授权用户访问数据
+
+		[root@host50 ~]# mysql -h192.168.4.57 -P4006 -ujingyaya -p123qqq...A
+		mysql> insert into  buydb2.t1 values(999);
+		mysql> insert into  buydb2.t1 values(998);
+mysql> select  * from buydb2.t1;
++------+
+| id   |
++------+
+|  999 |
+|  998 |
++------+					
+
+
+						2.6.3  验证57主机可以实现数据读写分离
+		[root@host52 ~]# mysql -uroot -p123qqq...A -e 'insert into buydb2.t1 values (777)'
+
+		[root@host51 ~]# mysql -uroot -p123qqq...A -e 'select  * from buydb2.t1'
+mysql: [Warning] Using a password on the command line interface can be insecure.
++------+
+| id   |
++------+
+|  999 |
+|  998 |
++------+
+[root@host51 ~]# 	
+
+		[root@host50 ~]# mysql -h192.168.4.57 -P4006 -ujingyaya -p123qqq...A -e 'select  * from buydb2.t1'
+mysql: [Warning] Using a password on the command line interface can be insecure.
++------+
+| id   |
++------+
+|  999 |
+|  998 |
+|  777 |
++------+
+[root@host50 ~]# 
+
+   [root@host50 ~]# mysql -h192.168.4.57 -P4006 -ujingyaya -p123qqq...A -e 'insert into buydb2.t1 values(3344)'
+mysql: [Warning] Using a password on the command line interface can be insecure.
+[root@host50 ~]# 
+[root@host50 ~]# mysql -h192.168.4.57 -P4006 -ujingyaya -p123qqq...A -e 'select  * from buydb2.t1'
+mysql: [Warning] Using a password on the command line interface can be insecure.
++------+
+| id   |
++------+
+|  999 |
+|  998 |
+|  777 |
+| 3344 |
++------+
+[root@host50 ~]# 
+		 
+					2.7 统一拍错
+ 
+						/var/log/maxscale/maxscale.log  日志文件
+
+				   		tail  -f  /var/log/maxscale/maxscale.log  动态输出日志信息
+						
+
+
+
+	2 MySQL多实例   
+
+          192.168.4.58  mysql-5.7.20-linux-glibc2.12-x86_64.tar.gz
