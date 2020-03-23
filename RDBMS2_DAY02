@@ -230,7 +230,7 @@ mysql: [Warning] Using a password on the command line interface can be insecure.
 +------+
 [root@host50 ~]# 
 		 
-					2.7 统一拍错
+					2.7 统一排错
  
 						/var/log/maxscale/maxscale.log  日志文件
 
