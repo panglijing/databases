@@ -274,3 +274,40 @@ socket=/dir2/mysqld2.sock
 
 [root@host58 ~]# 
 
+		3 启动多实例服务
+		4 查看服务状态
+		5 本机访问多实例服务
+   53  mysqld_multi start 1  
+   54  netstat  -utnlp | grep  3307
+   55  ls /dir1
+   56  mysql -uroot -p'jCU0*D!xE1WU' -S /dir1/mysqld1.sock
+       > alter user  root@"localhost" identified by "123456";
+       > show databases;
+       > create database bbsdb;
+       > exit;
+
+   57  mysql -uroot -p123456 -S /dir1/mysqld1.sock
+   58  ls /dir1/
+
+
+   59  mysqld_multi  start  2 
+   62  netstat  -utnlp  | grep  3308
+   63  ls /dir2
+   64  mysql -uroot  -p'/0KhyYtKog,c' -S  /dir2/mysqld2.sock
+       > alter user  root@"localhost" identified by "123456";
+       > show databases;
+       > create database gamedb;
+       > exit;
+
+   65  ls /dir2
+   66  mysql -uroot  -pabc123 -S  /dir2/mysqld2.sock
+
+   68  netstat  -utnlp | grep  mysqld
+
+   69  mysqld_multi  --user=root --password=123456 stop 1
+   70  netstat  -utnlp | grep  mysqld
+  
+   73  mysqld_multi  --user=root --password=abc123 stop 2
+
+   74  netstat  -utnlp | grep  mysqld
+
