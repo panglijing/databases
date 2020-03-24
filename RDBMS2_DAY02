@@ -310,4 +310,13 @@ socket=/dir2/mysqld2.sock
    73  mysqld_multi  --user=root --password=abc123 stop 2
 
    74  netstat  -utnlp | grep  mysqld
+   			6 客户端访问多实例服务 练习时间10分钟到11:50  
+				   要求：可以在50主机上访问 58 的实例1 和 实例2
+					1 分别在	实例1 和 实例2 做用户授权
+			mysql> grant  all on  gamedb.*  to jing@"%" identified by "654321";
+                        mysql> grant  all on  bbsdb.*  to  yaya@"%" identified by  "123456";
+			
+					2 50主机连接实例1 和 实例2
+			host50 ~ ]#mysql -h192.168.4.58 -P3307  -uyaya -p123456
+                        host50 ~ ]#mysql -h192.168.4.58 -P3308  -ujing -p654321	
 
