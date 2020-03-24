@@ -252,5 +252,25 @@ mysql: [Warning] Using a password on the command line interface can be insecure.
 ]# vim /etc/bashrc
     export  PATH=/usr/local/mysql/bin:$PATH
 :wq
+				[root@host58 ~]#vim  /etc/my.cnf
+[mysqld_multi]
+mysqld=/usr/local/mysql/bin/mysqld_safe
+mysqladmin=/usr/local/mysql/bin/mysqladmin
+user=root
 
+[mysqld1]
+datadir=/dir1
+port=3307
+log-error=/dir1/mysqld1.error
+pid-file=/dir1/mysqld1.pid
+socket=/dir1/mysqld1.sock
+
+[mysqld2]
+datadir=/dir2
+port=3308
+log-error=/dir2/mysqld2.error
+pid-file=/dir2/mysqld2.pid
+socket=/dir2/mysqld2.sock
+
+[root@host58 ~]# 
 
