@@ -1,1 +1,174 @@
+++++++++++++++RDBMS2_DAY03-----数据分片服务
 
+		1 相关概念？
+		2 软件介绍
+		3 mycat分片服务工作过程
+		4 拓扑结构
+
+			休息到15:00
+		5 配置数据分片服务器192.168.4.56
+			1 安装软件   3分钟时间到 15:09 
+     11  yum  -y   install  java-1.8.0-openjdk.x86_64
+     12  java  -version
+     17  tar  -zxvf /var/ftp/upload/Mycat-server-1.6-RELEASE-20161028204710-linux.tar.gz 
+   20  ls mycat/
+   21  mv mycat  /usr/local/
+   22  ls /usr/local/
+   23  ls /usr/local/mycat/
+			2 配置文件说明
+
+			3 修改配置文件 （标签要成对出现 要有开始有结束）
+			  3.1  指定连接用户 server.xml  (扩展标记语言) 使用默认配置即可
+
+			  3.2  设置数据分片的表 
+
+[root@host56 conf]# cp  schema.xml  /root/
+[root@host56 conf]# sed -i '56,77d' schema.xml
+[root@host56 conf]# sed -i '39,42d' schema.xml
+
+ ]# vim schema.xml
+ <mycat:schema xmlns:mycat="http://io.mycat/">
+ 	<schema .....>   #定义数据分布式存储的表
+	        <table     />
+
+	        <table  ....> ....</table>
+	</schema>
+
+        <dataNode ..... /> #指定数据库服务器的主机名
+
+	<dataHost ..... >  #指定数据库服务器的ip地址
+	</dataHost>
+ </mycat:schema>
+
+ [root@host56 mycat]# cat conf/schema.xml
+<?xml version="1.0"?>
+<!DOCTYPE mycat:schema SYSTEM "schema.dtd">
+<mycat:schema xmlns:mycat="http://io.mycat/">
+
+	<schema name="TESTDB" checkSQLschema="false" sqlMaxLimit="100">
+		<!-- auto sharding by id (long) -->
+		<table name="travelrecord" dataNode="dn1,dn2,dn3" rule="auto-sharding-long" />
+
+		<!-- global table is auto cloned to all defined data nodes ,so can join
+			with any table whose sharding node is in the same data node -->
+		<table name="company" primaryKey="ID" type="global" dataNode="dn1,dn2,dn3" />
+		<table name="goods" primaryKey="ID" type="global" dataNode="dn1,dn2,dn3" />
+		<!-- random sharding using mod sharind rule -->
+		<table name="hotnews" primaryKey="ID" autoIncrement="true" dataNode="dn1,dn2,dn3"
+			   rule="mod-long" />
+		<!-- <table name="dual" primaryKey="ID" dataNode="dnx,dnoracle2" type="global"
+			needAddLimit="false"/> <table name="worker" primaryKey="ID" dataNode="jdbc_dn1,jdbc_dn2,jdbc_dn3"
+			rule="mod-long" /> -->
+		<table name="employee" primaryKey="ID" dataNode="dn1,dn2,dn3"
+			   rule="sharding-by-intfile" />
+		<table name="customer" primaryKey="ID" dataNode="dn1,dn2,dn3"
+			   rule="sharding-by-intfile">
+			<childTable name="orders" primaryKey="ID" joinKey="customer_id"
+						parentKey="id">
+				<childTable name="order_items" joinKey="order_id"
+							parentKey="id" />
+			</childTable>
+			<childTable name="customer_addr" primaryKey="ID" joinKey="customer_id"
+						parentKey="id" />
+		</table>
+		<!-- <table name="oc_call" primaryKey="ID" dataNode="dn1$0-743" rule="latest-month-calldate"
+			/> -->
+	</schema>
+	<!-- <dataNode name="dn1$0-743" dataHost="localhost1" database="db$0-743"
+		/> -->
+	<dataNode name="dn1" dataHost="mysql53" database="db1" />
+	<dataNode name="dn2" dataHost="mysql54" database="db2" />
+	<dataNode name="dn3" dataHost="mysql55" database="db3" />
+	
+        <dataHost name="mysql53" maxCon="1000" minCon="10" balance="0"
+			  writeType="0" dbType="mysql" dbDriver="native" switchType="1"  slaveThreshold="100">
+		<heartbeat>select user()</heartbeat>
+		<writeHost host="hostM1" url="192.168.4.53:3306" user="pljadmin"
+				   password="123qqq...A">
+		</writeHost>
+	</dataHost>
+
+        <dataHost name="mysql54" maxCon="1000" minCon="10" balance="0"
+                          writeType="0" dbType="mysql" dbDriver="native" switchType="1"  slaveThreshold="100">
+                <heartbeat>select user()</heartbeat>
+                <writeHost host="hostM2" url="192.168.4.54:3306" user="pljadmin"
+                                   password="123qqq...A">
+                </writeHost>
+        </dataHost>
+
+	<dataHost name="mysql55" maxCon="1000" minCon="10" balance="0"
+                          writeType="0" dbType="mysql" dbDriver="native" switchType="1"  slaveThreshold="100">
+                <heartbeat>select user()</heartbeat>
+                <writeHost host="hostM3" url="192.168.4.55:3306" user="pljadmin"
+                                   password="123qqq...A">
+                </writeHost>
+        </dataHost>
+</mycat:schema>
+[root@host56 mycat]# 
+
+
+
+			4 配置数据库服务器 (3台数据库服务器根据schema.xml配置 ，做如下操作)
+			[root@host53 mysql]# mysql -uroot -p123qqq...A -e 'create database db1'
+			[root@host54 mysql]# mysql -uroot -p123qqq...A -e 'create database db2'
+			[root@host55 mysql]# mysql -uroot -p123qqq...A -e 'create database db3'	
+
+			[root@host53 mysql]# mysql -uroot -p123qqq...A -e 'grant all on  *.* to pljadmin@"%" identified by  "123qqq...A"'
+
+			[root@host54 mysql]# mysql -uroot -p123qqq...A -e 'grant all on  *.* to pljadmin@"%" identified by  "123qqq...A"'
+
+			[root@host55 mysql]# mysql -uroot -p123qqq...A -e 'grant all on  *.* to pljadmin@"%" identified by  "123qqq...A"'
+
+			5 启动mycat服务
+
+ [root@host56 conf]# mysql -h192.168.4.55 -upljadmin -p123qqq...A
+ [root@host56 conf]# mysql -h192.168.4.54 -upljadmin -p123qqq...A
+ [root@host56 conf]# mysql -h192.168.4.53 -upljadmin -p123qqq...A
+
+ [root@host56 mycat]# /usr/local/mycat/bin/mycat  start
+Starting Mycat-server...
+[root@host56 mycat]# 
+
+			6 查看服务状态
+[root@host56 mycat]# netstat  -utnlp  | grep 8066
+tcp6       0      0 :::8066                 :::*                    LISTEN      1637/java         
+[root@host56 mycat]#
+ [root@host56 mycat]# ls logs/
+ mycat.log  mycat.pid  wrapper.log
+[root@host56 mycat]#
+			
+		6 测试配置：在客户端50 连接mycat服务器56 能够查看的定义逻辑库和逻辑表
+			[root@host50 ~]# mysql -h192.168.4.56 -P8066  -uroot -p123456
+	
+mysql> show databases;
++----------+
+| DATABASE |
++----------+
+| TESTDB   |
++----------+
+1 row in set (0.00 sec)
+
+mysql> use TESTDB;
+
+mysql> show tables;
++------------------+
+| Tables in TESTDB |
++------------------+
+| company          |
+| customer         |
+| customer_addr    |
+| employee         |
+| goods            |
+| hotnews          |
+| orders           |
+| order_items      |
+| travelrecord     |
++------------------+
+9 rows in set (0.00 sec)
+
+mysql> desc employee;
+ERROR 1146 (42S02): Table 'db2.employee' doesn't exist
+mysql> 
+mysql> exit;
+
+		7 统一排错
