@@ -236,11 +236,21 @@ mysql: [Warning] Using a password on the command line interface can be insecure.
 
 				   		tail  -f  /var/log/maxscale/maxscale.log  动态输出日志信息
 						
-
-
-
 	2 MySQL多实例   
+		2.1 多实例介绍（什么是多实例）在1台物理服务器上运行多个数据库服务
 
-          192.168.4.58  mysql-5.7.20-linux-glibc2.12-x86_64.tar.gz
-	   
-	   XXXXXXXXXXXXXXXXXFFFFFFFFFFFFFFFFFFF
+		2.2 为什么要使用多实例（有点与缺点）
+		2.3 配置多实例（如何实现）
+			步骤如下：
+				1 安装软件
+]# yum –y  install  libaio
+]# useradd  mysql
+]# tar  -zxvf  mysql-5.7.20-linux-glibc2.12-x86_64.tar.gz
+]# mv  mysql-5.7.20-linux-glibc2.12-x86_64 /usr/local/mysql
+]# PATH=/usr/local/mysql/bin:$PATH
+
+]# vim /etc/bashrc
+    export  PATH=/usr/local/mysql/bin:$PATH
+:wq
+
+
