@@ -310,7 +310,7 @@ mysql> select  * from employee;
 
 				客户端连接mycat服务器建表 并存储数据
 
-mysql> uset TESTDB;
+mysql> use TESTDB;
 mysql> create table hotnews( id int , title char(50) , comment char(200) ) ;
 
 mysql> insert into hotnews(id , title , comment) values (9,"xxx","xxxx"),(9,"xxx","xxx"),(9,"xxx","xxxx");
