@@ -95,3 +95,62 @@ mysql> change master to master_host="192.168.4.51",master_user="repluser",master
 mysql> start slave;
 
 mysql> show slave status \G
+
+		4.2 配置管理主机 192.168.4.57
+				4.2.1 安装软件
+			[root@host57 mha]# yum -y install mha4mysql-node-0.56-0.el6.noarch.rpm 
+			]# yum -y install  perl-ExtUtils-*   perl-CPAN*
+			27  tar -zxvf mha4mysql-manager-0.56.tar.gz 
+    			29  cd mha4mysql-manager-0.56
+   			31  perl Makefile.PL 
+   			38  make
+   			39  make install
+		时间到 17:00点
+				4.2.2 创建并编辑主配置文件
+
+[root@host57 mha4mysql-manager-0.56]# ls samples/
+conf  scripts
+[root@host57 mha4mysql-manager-0.56]# ls samples/conf/
+app1.cnf  masterha_default.cnf
+[root@host57 mha4mysql-manager-0.56]# mkdir /etc/mha
+[root@host57 mha4mysql-manager-0.56]# cp samples/conf/app1.cnf  /etc/mha/
+[root@host57 mha4mysql-manager-0.56]# ls /etc/mha/
+app1.cnf
+[root@host57 mha4mysql-manager-0.56]# vim /etc/mha/app1.cnf
+
+[server default]
+manager_workdir=/etc/mha
+manager_log=/etc/mha/manager.log
+master_ip_failover_script=/etc/mha/master_ip_failover
+
+
+ssh_user=root
+ssh_port=22
+
+repl_user=repluser
+repl_password=123qqq...A
+
+user=root
+password=123qqq...A
+
+[server1]
+hostname=192.168.4.51
+port=3306
+candidate_master=1
+
+[server2]
+hostname=192.168.4.52
+port=3306
+candidate_master=1
+
+[server3]
+hostname=192.168.4.53
+port=3306
+candidate_master=1
+:wq
+
+
+
+
+
+
