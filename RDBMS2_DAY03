@@ -171,4 +171,107 @@ ERROR 1146 (42S02): Table 'db2.employee' doesn't exist
 mysql> 
 mysql> exit;
 
+					
+		6 测试配置：在客户端50 连接mycat服务器56 能够查看的定义逻辑库和逻辑表
+			[root@host50 ~]# mysql -h192.168.4.56 -P8066  -uroot -p123456
+	
+mysql> show databases;
++----------+
+| DATABASE |
++----------+
+| TESTDB   |
++----------+
+1 row in set (0.00 sec)
+
+mysql> use TESTDB;
+
+mysql> show tables;
++------------------+
+| Tables in TESTDB |
++------------------+
+| company          |
+| customer         |
+| customer_addr    |
+| employee         |
+| goods            |
+| hotnews          |
+| orders           |
+| order_items      |
+| travelrecord     |
++------------------+
+9 rows in set (0.00 sec)
+
+mysql> desc employee;
+ERROR 1146 (42S02): Table 'db2.employee' doesn't exist
+mysql> 
+mysql> exit;
+
 		7 统一排错
+		8 分片规则 使用例子 （使用 分片规则 实现数据的分布式存储）
+			8.1 枚举分片规则 sharding-by-intfile
+			        给分片字段赋值时，值必须在 分片规则配置文件 定义的值 里选择
+   
+				查看那张表使用sharding-by-intfile
+
+				vim  schema.xml
+				  <table name="employee" primaryKey="ID" dataNode="dn1,dn2,dn3"
+                           rule="sharding-by-intfile" />
+
+				 查看分片字段名
+				vim rule.xml
+					  <tableRule name="sharding-by-intfile">
+                				<rule>
+                        			   <columns>sharding_id</columns>
+                        			   <algorithm>hash-int</algorithm>
+                				</rule>
+        				   </tableRule>
+					
+				修改分片规则配置文件，定义值列表
+				vim rule.xml
+				  <function name="hash-int"
+                									class="io.mycat.route.function.PartitionByFileMap">
+                			<property name="mapFile">partition-hash-int.txt</property>
+        			  </function>				   
+
+
+				]# vim /usr/local/mycat/conf/partition-hash-int.txt				  				
+					10000=0     
+					10010=1
+					10020=2      
+				:wq
+
+				重启mycat服务
+				]# /usr/local/mycat/bin/mycat stop
+				]# /usr/local/mycat/bin/mycat start
+			
+				客户端连接mycat 服务 创建employee 并存储数据
+mysql> use TESTDB;
+Database changed
+mysql>
+mysql> create table employee( ID int primary key auto_increment ,
+    -> sharding_id int , name char(15) , age int );
+
+mysql> desc employee ;
++-------------+----------+------+-----+---------+----------------+
+| Field       | Type     | Null | Key | Default | Extra          |
++-------------+----------+------+-----+---------+----------------+
+| ID          | int(11)  | NO   | PRI | NULL    | auto_increment |
+| sharding_id | int(11)  | YES  |     | NULL    |                |
+| name        | char(15) | YES  |     | NULL    |                |
+| age         | int(11)  | YES  |     | NULL    |                |
++-------------+----------+------+-----+---------+----------------+
+4 rows in set (0.20 sec)
+
+mysql> insert into  employee(sharding_id , name , age )values(10000,"bob",19),(10000,"bob",19),(10000,"bob",19);
+
+mysql> insert into  employee(sharding_id , name , age )values(10010,"bobA",19),(10010,"bobA",19),(10010,"bobA",19);
+
+mysql> insert into  employee(sharding_id , name , age )values(10020,"bobF",19),(10020,"bobF",19),(10020,"bobF",19);
+
+mysql> select  * from employee;   
+				
+			在3台数据库服务器上查看employee表记录
+
+[root@host53 ~]# mysql -uroot -p123qqq...A -e 'select  * from  db1.employee'
+[root@host54 ~]# mysql -uroot -p123qqq...A -e 'select  * from  db2.employee'				
+[root@host55 ~]# mysql -uroot -p123qqq...A -e 'select  * from  db3.employee'
