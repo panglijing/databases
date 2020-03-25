@@ -323,3 +323,71 @@ mysql> insert into hotnews(id , title , comment) values (11, "xxxB","xxxxA"),(11
 [root@host53 ~]# mysql -uroot -p123qqq...A -e 'select  * from  db1.hotnews'				
 [root@host54 ~]# mysql -uroot -p123qqq...A -e 'select  * from  db2.hotnews'
 [root@host55 ~]# mysql -uroot -p123qqq...A -e 'select  * from  db3.hotnews'
+
+
+
+		9 添加新库 、 新表
+			9.1 添加新库
+				vim server.xml
+					<user name="root">
+						.....
+						<property name="schemas">TESTDB,GAMEDB</property>
+
+					<user name="root">
+						.....
+						<property name="schemas">TESTDB,GAMEDB</property>
+				     
+				:wq
+    
+
+			9.2 添加新表
+				vim schema.xml
+
+	<mycat:schema xmlns:mycat="http://io.mycat/">
+
+             <schema name="GAMEDB" checkSQLschema="false" sqlMaxLimit="100">
+                  <table name="company2" primaryKey="ID" type="global" dataNode="dn1,dn2,dn3" />
+                  <table name="hotnews2" rule="sharding-by-intfile" dataNode="dn1,dn2,dn3" />
+             </schema>
+             .....
+        </mycat:schema>
+
+			9.3 重启mycat服务
+				]# /usr/local/mycat/bin/mycat stop
+				]# /usr/local/mycat/bin/mycat start
+				]# netstat  -utnlp  | grep 8066
+
+			9.4 客户端向新库新表存储数据
+				
+ [root@host50 ~]# mysql -h192.168.4.56 -P8066 -uroot -p123456
+
+mysql> show databases;
++----------+
+| DATABASE |
++----------+
+| GAMEDB   |
+| TESTDB   |
++----------+
+2 rows in set (0.01 sec)
+
+mysql> use GAMEDB;
+mysql> show tables;
++------------------+
+| Tables in GAMEDB |
++------------------+
+| company2         |
+| hotnews2         |
++------------------+
+2 rows in set (0.00 sec)
+
+mysql> create table company2(cname char(20),caddr char(50),cp char(10));
+
+mysql> insert into company2(cname,caddr,cp)values("tarena","bj","hsy");
+mysql> insert into company2(cname,caddr,cp)values("tarena","bj","hsy");
+mysql> insert into company2(cname,caddr,cp)values("tarena","bj","hsy");
+mysql> insert into company2(cname,caddr,cp)values("tarena","bj","hsy");
+mysql> select  * from company2;
+
+[root@host53 ~]# mysql -uroot -p123qqq...A -e 'select  * from  db1.company2'
+[root@host54 ~]# mysql -uroot -p123qqq...A -e 'select  * from  db2.company2'
+[root@host55 ~]# mysql -uroot -p123qqq...A -e 'select  * from  db3.company2'
