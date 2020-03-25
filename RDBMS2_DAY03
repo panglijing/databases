@@ -275,3 +275,51 @@ mysql> select  * from employee;
 [root@host53 ~]# mysql -uroot -p123qqq...A -e 'select  * from  db1.employee'
 [root@host54 ~]# mysql -uroot -p123qqq...A -e 'select  * from  db2.employee'				
 [root@host55 ~]# mysql -uroot -p123qqq...A -e 'select  * from  db3.employee'
+
+
+			
+			8.2 求模分片规则 mod-long
+				根据字段值与设定的数字求模结果存储数据
+
+				查看使用求模分别规则的表
+				vim schema.xml
+				<table name="hotnews"  dataNode="dn1,dn2,dn3" rule="mod-long" />	
+				:wq
+                                查看分片字段名
+				  vim rule.xml
+					 <tableRule name="mod-long">
+                				<rule>
+                        			    <columns>id</columns>
+                        			    <algorithm>mod-long</algorithm>
+                		 		</rule>
+       					 </tableRule>
+
+				 设置分片字段 求模的 数字
+					
+					vim rule.xml
+						
+		<function name="mod-long" class="io.mycat.route.function.PartitionByMod">
+                	<!-- how many data nodes -->
+                	<property name="count">3</property>
+        	</function>
+	
+				重启mycat服务
+					]# /usr/local/mycat/bin/mycat  stop
+				 	]# /usr/local/mycat/bin/mycat  start
+
+
+				客户端连接mycat服务器建表 并存储数据
+
+mysql> uset TESTDB;
+mysql> create table hotnews( id int , title char(50) , comment char(200) ) ;
+
+mysql> insert into hotnews(id , title , comment) values (9,"xxx","xxxx"),(9,"xxx","xxx"),(9,"xxx","xxxx");
+
+mysql> insert into hotnews(id , title , comment) values (10,"xxxA","xxxxA"),(10,"xxxA","xxxA"),(10,"xxxA","xxxxA");
+
+mysql> insert into hotnews(id , title , comment) values (11, "xxxB","xxxxA"),(11,"xxxB","xxxA"),(11,"xxxB","xxxxA");
+				
+				在3台数据库服务器查看数据
+[root@host53 ~]# mysql -uroot -p123qqq...A -e 'select  * from  db1.hotnews'				
+[root@host54 ~]# mysql -uroot -p123qqq...A -e 'select  * from  db2.hotnews'
+[root@host55 ~]# mysql -uroot -p123qqq...A -e 'select  * from  db3.hotnews'
