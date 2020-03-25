@@ -1,0 +1,53 @@
+1 相关概念 
+			集群：多台服务器提供相同的服务
+			集群分类：	  LB  、 HA 、 HPC
+			LB集群介绍：所有服务器平均分摊客户端的多次访问
+			HA集群介绍：主备模式，主服务器宕机时，备用服务器自动接替主服务器继续提供服务
+			集群服务软件:   LVS 、haproxy  、nginx 、keepalived
+	
+		2 MHA软件介绍 ?   MHA_manager  MHA_node
+
+		3 实验拓扑
+				准备实验使用的机器和软件包   20分钟  15:05  上课。
+		4 搭建集群
+			4.1 环境准备
+				4.1.1 安装yum源里没有的perl依赖软件（51 52 53 57） 到15:20
+					]# cd  mha
+				        ]# yum -y install perl-*.rpm
+
+				4.1.2 配置ssh免密登录
+					1 配置数据库服务器之间root  ssh免密登录
+[root@host51 mha]#
+   14  ssh-keygen 
+   15  ls ~/.ssh/
+   16  ssh-copy-id  root@192.168.4.52
+   17  ssh-copy-id  root@192.168.4.53
+   21  ssh root@192.168.4.52
+   22  ssh root@192.168.4.53
+   
+[root@host52 mha]#
+   14  ssh-keygen 
+   15  ls ~/.ssh/
+   16  ssh-copy-id  root@192.168.4.51
+   17  ssh-copy-id  root@192.168.4.53
+   21  ssh root@192.168.4.51
+   22  ssh root@192.168.4.53
+
+[root@host53 mha]#
+   14  ssh-keygen 
+   15  ls ~/.ssh/
+   16  ssh-copy-id  root@192.168.4.51
+   17  ssh-copy-id  root@192.168.4.52
+   21  ssh root@192.168.4.51
+   22  ssh root@192.168.4.52
+					2 配置管理主机57 root  ssh免密登录3台数据库服务器
+[root@host57 mha]#					
+   14  ssh-keygen 
+   15  ls ~/.ssh/
+   16  ssh-copy-id  root@192.168.4.51
+   17  ssh-copy-id  root@192.168.4.52
+   18  ssh-copy-id  root@192.168.4.53
+   19  history 
+   20  ssh root@192.168.4.51
+   21  ssh root@192.168.4.52
+   22  ssh root@192.168.4.53
