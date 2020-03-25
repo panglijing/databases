@@ -148,7 +148,35 @@ hostname=192.168.4.53
 port=3306
 candidate_master=1
 :wq
+				
 
+
+				4.2.3 创建故障切换脚本，并赋予执行权限
+				]# cd mha
+[root@host57 mha]# cp master_ip_failover  /etc/mha/
+[root@host57 mha]# cd /etc/mha/
+[root@host57 mha]# ls
+app1.cnf  master_ip_failover
+[root@host57 mha]# chmod +x master_ip_failover
+
+[root@host57 mha]# vim +35 master_ip_failover
+  35 my $vip = '192.168.4.100/24';  # Virtual IP 
+  36 my $key = "1";
+  37 my $ssh_start_vip = "/sbin/ifconfig ens33:$key $vip";
+  38 my $ssh_stop_vip = "/sbin/ifconfig ens33:$key down";
+:wq
+
+ 			
+				4.2.4 把故障切换脚本中指定的vip地址配置在 主服务器51上
+[root@host51 mha]# ifconfig  ens33:1 192.168.4.100/24
+[root@host51 mha]# ifconfig  ens33:1
+ens33:1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.4.100  netmask 255.255.255.0  broadcast 192.168.4.255
+        ether 00:0c:29:d5:c9:38  txqueuelen 1000  (Ethernet)
+
+[root@host51 mha]# ifconfig  ens33
+ens33: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.4.51  netmask 255.255.255.0  broadcast 192.168.4.255
 
 
 
