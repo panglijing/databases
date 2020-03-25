@@ -51,3 +51,47 @@
    20  ssh root@192.168.4.51
    21  ssh root@192.168.4.52
    22  ssh root@192.168.4.53
+   										3 配置MySQL一主多从同步结构
+						3.1 配置主服务器192.168.4.51
+[root@host51 mha]# 
+       vim /etc/my.cnf
+	[mysqld]
+		server_id=53
+		log_bin=master51
+	:wq
+       ]# systemctl restart mysqld
+       ]# mysql -uroot -p123qqq...A	
+
+mysql> grant replication slave on  *.*  to  repluser@"%" identified by "123qqq...A";
+mysql> show master status;
+
+						3.2 配置从服务器192.168.4.52
+[root@host52 mha]# 
+       vim /etc/my.cnf
+	[mysqld]
+		server_id=52
+	:wq
+       ]# systemctl restart mysqld
+       ]# mysql -uroot -p123qqq...A	
+
+mysql> change master to master_host="192.168.4.51",master_user="repluser",master_password="123qqq...A",master_log_file="master51.000001",master_log_pos=154;
+
+mysql> start slave;
+
+mysql> show slave status \G
+
+						3.3 配置从服务器192.168.4.53
+[root@host53 mha]# 
+       vim /etc/my.cnf
+	[mysqld]
+		server_id=53
+	:wq
+       ]# systemctl restart mysqld
+       ]# mysql -uroot -p123qqq...A	
+
+mysql> change master to master_host="192.168.4.51",master_user="repluser",master_password="123qqq...A",master_log_file="master51.000001",master_log_pos=154;
+
+
+mysql> start slave;
+
+mysql> show slave status \G
