@@ -56,7 +56,7 @@
 [root@host51 mha]# 
        vim /etc/my.cnf
 	[mysqld]
-		server_id=53
+		server_id=51
 		log_bin=master51
 	:wq
        ]# systemctl restart mysqld
