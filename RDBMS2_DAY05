@@ -189,5 +189,26 @@ wsrep_incoming_addresses         | 192.168.4.72:3306,192.168.4.73:3306,192.168.4
 wsrep_ready                      | ON 
 wsrep_cluster_status             | Primary                                              
 wsrep_connected                  | ON 
+										1.2.4  客户端访问集群存取数据
 
+				1.2.5 测试高可用功能
+				1.2.6 测试故障主机自动恢复功能
+				
+		
+	停止顺序 71  72  73 
+        启动顺序 73  72   71 
+
+  检查配置文件 mysqld.cnf  、 wsrep.cnf
+	
+  在3台主机 都执行一下 setenforce 0
+  在3台主机 都执行一下  killall -9 mysqld  多执行几遍
+  
+  在3台主机  都执行一下 rm  -rf /var/lib/mysql/*
+  
+
+
+		二 MySQL存储引擎
+
++++++++++++NoSQL_DAY01 
+           需要虚拟 50  51  52 
 				
