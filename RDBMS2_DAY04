@@ -350,4 +350,59 @@ Fri Mar 27 19:45:07 2020 - [info] Reading server configuration from /etc/mha/app
 [root@host57 mha]# masterha_check_status  --conf=/etc/mha/app1.cnf 
 app1 (pid:5496) is running(0:PING_OK), master:192.168.4.52
 [root@localhost mha]# 
+			7.3 恢复故障主机（把宕机的数据库服务器51再添加到集群里）
+	        		7.3.1 配置数据库服务器51
+					
+					与主服务器数据一致
+ [root@host52 mha]# mysqldump -uroot -p123qqq...A  --master-data  db9  > /root/db9.sql
+ [root@host52 mha]# scp /root/db9.sql  root@192.168.4.51:/opt/
+					启动mysql服务
+ [root@host51 mha]# systemctl  start mysqld
+ [root@host51 mha]# mysql -uroot -p123qqq...A  db9  <  /opt/db9.sql
+ [root@host51 mha]#  grep  master52  /opt/db9.sql
 
+  					指定主服务器信息
+  mysql> change master to master_host="192.168.4.52" , master_user="repluser",master_password="123qqq...A" ,master_log_file="master52.000001" , master_log_pos=2882;
+
+
+
+					启动slave进程
+mysql> start slave;
+					
+					查看状态信息
+				
+[root@host51 mysql]# mysql -uroot -p123qqq...A -e 'show slave status\G' | grep 192 
+mysql: [Warning] Using a password on the command line interface can be insecure.
+                  Master_Host: 192.168.4.52
+[root@host51 mysql]# mysql -uroot -p123qqq...A -e 'show slave status\G' | grep -i yes
+mysql: [Warning] Using a password on the command line interface can be insecure.
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+[root@host51 mysql]#
+
+				7.3.2 配置管理主机
+					修改主配置文件
+						vim /etc/mha/app1.cnf
+							[server1]
+							hostname=192.168.4.51
+							port=3306
+							candidate_master=1
+						:wq
+
+					测试集群环境
+				]# masterha_check_repl --conf=/etc/mha/app1.cnf 
+				MySQL Replication Health is OK.
+					重启管理服务
+
+				]# masterha_stop --conf=/etc/mha/app1.cnf
+
+				[root@localhost ~]# masterha_manager --remove_dead_master_conf --ignore_last_failover   --conf=/etc/mha/app1.cnf
+Fri Mar 27 22:45:21 2020 - [warning] Global configuration file /etc/masterha_default.cnf not found. Skipping.
+Fri Mar 27 22:45:21 2020 - [info] Reading application default configuration from /etc/mha/app1.cnf..
+Fri Mar 27 22:45:21 2020 - [info] Reading server configuration from /etc/mha/app1.cnf..
+				
+					查看管理服务状态
+
+				[root@localhost mha]# masterha_check_status --conf=/etc/mha/app1.cnf 
+app1 (pid:6772) is running(0:PING_OK), master:192.168.4.52
+[root@localhost mha]#
