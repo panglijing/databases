@@ -194,10 +194,32 @@ ens33: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
 				 3 数据数据同步连接用户repluser
 				 4 重启数据库服务器
 				 5 查看slave 状态信息
-		5 测试配置
+			        公共配置
+					安装MHA_node软件
+					添加监控用户root 密码是123qqq...A
+					
+		5 测试配置（192。168.4.57）
 		   	5.1 测试ssh免密登录配置	
+				]# masterha_check_ssh  --conf=/etc/mha/app1.cnf 
+					All SSH connection tests passed successfully.
 			5.2 测试主从同步配置
+				]# masterha_check_repl  --conf=/etc/mha/app1.cnf
+				    MySQL Replication Health is OK.
 		6 启动管理服务
+ ]# masterha_manager --remove_dead_master_conf --ignore_last_failover  --conf=/etc/mha/app1.cnf       
+ Fri Mar 27 17:58:48 2020 - [warning] Global configuration file /etc/masterha_default.cnf not found.  Skipping.
+ Fri Mar 27 17:58:48 2020 - [info] Reading application default configuration from  /etc/mha/app1.cnf..
+ Fri Mar 27 17:58:48 2020 - [info] Reading server configuration from /etc/mha/app1.cnf..
+
+[root@localhost mha]# masterha_check_status --conf=/etc/mha/app1.cnf 
+app1 (pid:3365) is running(0:PING_OK), master:192.168.4.51
+
+[root@localhost mha]# ls /etc/mha/
+app1.cnf  app1.master_status.health  manager.log  master_ip_failover
+[root@localhost mha]#
+
+
+]# masterha_stop --conf=/etc/mha/app1.cnf  # 停止管理服务的命令
 
 
 
