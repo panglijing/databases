@@ -19,3 +19,19 @@
  ]# tar -xvf  Percona-XtraDB-Cluster-5.7.25-31.35-r463-el7-x86_64-bundle.tar
 
  ]# yum -y  install  Percona-XtraDB-Cluster-*.rpm
+ 
+ 		       
+				1.2.2  修改3台服务器的配置文件
+ ]#cd /etc/percona-xtradb-cluster.conf.d/
+ ]# vim mysqld.cnf 
+       server_id=数字  #3台机器不允许相同
+
+]# vim wsrep.cnf
+wsrep_cluster_address=gcomm://192.168.4.71,192.168.4.72,192.168.4.73    #台机器要一样
+wsrep_node_address=192.168.4.73 #自己的ip
+wsrep_cluster_name=pxc-cluster  #台机器要一样
+wsrep_node_name=pxc-cluster-node-73 #自己的主机名
+wsrep_sst_auth="sstuser:123qqq...A" #台机器要一样
+
+
+				
