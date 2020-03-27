@@ -32,6 +32,162 @@ wsrep_node_address=192.168.4.73 #自己的ip
 wsrep_cluster_name=pxc-cluster  #台机器要一样
 wsrep_node_name=pxc-cluster-node-73 #自己的主机名
 wsrep_sst_auth="sstuser:123qqq...A" #台机器要一样
+										1.2.3  启动服务
 
+					1.2.3.1 在71主机做集群的初始配置
+[root@host71 ~]# systemctl  start mysql@bootstrap.service
+[root@host71 ~]# netstat  -utnlp  | grep 3306
+tcp6       0      0 :::3306                 :::*                    LISTEN      2144/mysqld         
+[root@host71 ~]# netstat  -utnlp  | grep 4567
+tcp        0      0 0.0.0.0:4567            0.0.0.0:*               LISTEN      2144/mysqld         
+[root@host71 ~]# ls /var/lib/mysql
+auto.cnf         grastate.dat       ibdata1          mysql.sock          server-key.pem
+ca-key.pem       gvwstate.dat       ib_logfile0      mysql.sock.lock     sys
+ca.pem           host71-bin.000001  ib_logfile1      performance_schema  xb_doublewrite
+client-cert.pem  host71-bin.000002  ibtmp1           private_key.pem
+client-key.pem   host71-bin.index   mysql            public_key.pem
+galera.cache     ib_buffer_pool     mysqld_safe.pid  server-cert.pem
+[root@host71 ~]# 
+[root@host71 ~]# grep password /var/log/mysqld.log 
+2020-03-27T17:11:08.956192Z 1 [Note] A temporary password is generated for root@localhost: +%c4>3?:QqUj
+[root@host71 ~]# mysql -uroot -p'+%c4>3?:QqUj'
+
+mysql> alter user root@"localhost" identified by "123456";
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> show databases;
+
+mysql> grant reload , lock tables , replication client , process on *.* to sstuser@"localhost" identified by  "123qqq...A";
+Query OK, 0 rows affected, 1 warning (0.01 sec)
+
+mysql> select user , host from mysql.user;
+
+						1.2.3.2 启动72主机的数据库服务
+
+ [root@host72 ~]# setenforce 0
+[root@host72 ~]# 
+[root@host72 ~]# ls /var/lib/mysql
+[root@host72 ~]# 
+[root@host72 ~]# systemctl  start mysql
+[root@host72 ~]# netstat  -utnlp  | grep 3306
+tcp6       0      0 :::3306                 :::*                    LISTEN      2186/mysqld         
+[root@host72 ~]# netstat  -utnlp  | grep 4567
+tcp        0      0 0.0.0.0:4567            0.0.0.0:*               LISTEN      2186/mysqld         
+[root@host72 ~]# ls /var/lib/mysql
+auto.cnf         host72-bin.000001    innobackup.prepare.log  server-key.pem
+ca-key.pem       host72-bin.index     mysql                   sys
+ca.pem           ib_buffer_pool       mysql.sock              xb_doublewrite
+client-cert.pem  ibdata1              mysql.sock.lock         xtrabackup_binlog_pos_innodb
+client-key.pem   ib_logfile0          performance_schema      xtrabackup_galera_info
+galera.cache     ib_logfile1          private_key.pem         xtrabackup_info
+grastate.dat     ibtmp1               public_key.pem          xtrabackup_master_key_id
+gvwstate.dat     innobackup.move.log  server-cert.pem
+[root@host72 ~]# 
+[root@host72 ~]# mysql -uroot -p123456
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 11
+Server version: 5.7.25-28-57-log Percona XtraDB Cluster (GPL), Release rel28, Revision a2ef85f, WSREP version 31.35, wsrep_31.35
+
+Copyright (c) 2009-2019 Percona LLC and/or its affiliates
+Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+4 rows in set (0.04 sec)
+
+mysql> select user , host from  mysql.user;
++---------------+-----------+
+| user          | host      |
++---------------+-----------+
+| mysql.session | localhost |
+| mysql.sys     | localhost |
+| root          | localhost |
+| sstuser       | localhost |
++---------------+-----------+
+4 rows in set (0.00 sec)
+
+mysql> 							
+						1.2.3.3 启动73主机的数据库服务
+
+[root@host73 ~]# setenforce 0
+[root@host73 ~]# ls /var/lib/mysql
+[root@host73 ~]# 
+[root@host73 ~]# systemctl  start mysql
+[root@host73 ~]# 
+[root@host73 ~]# netstat  -utnlp | grep 3306
+tcp6       0      0 :::3306                 :::*                    LISTEN      2216/mysqld         
+[root@host73 ~]# 
+[root@host73 ~]# netstat  -utnlp | grep 4567
+tcp        0      0 0.0.0.0:4567            0.0.0.0:*               LISTEN      2216/mysqld         
+[root@host73 ~]# ls /var/lib/mysql
+auto.cnf         host73-bin.000001    innobackup.prepare.log  server-key.pem
+ca-key.pem       host73-bin.index     mysql                   sys
+ca.pem           ib_buffer_pool       mysql.sock              xb_doublewrite
+client-cert.pem  ibdata1              mysql.sock.lock         xtrabackup_binlog_pos_innodb
+client-key.pem   ib_logfile0          performance_schema      xtrabackup_galera_info
+galera.cache     ib_logfile1          private_key.pem         xtrabackup_info
+grastate.dat     ibtmp1               public_key.pem          xtrabackup_master_key_id
+gvwstate.dat     innobackup.move.log  server-cert.pem
+[root@host73 ~]#
+
+[root@host73 ~]# mysql -uroot -p123456
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 11
+Server version: 5.7.25-28-57-log Percona XtraDB Cluster (GPL), Release rel28, Revision a2ef85f, WSREP version 31.35, wsrep_31.35
+
+Copyright (c) 2009-2019 Percona LLC and/or its affiliates
+Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+4 rows in set (0.05 sec)
+
+mysql> select user , host from mysql.user;
++---------------+-----------+
+| user          | host      |
++---------------+-----------+
+| mysql.session | localhost |
+| mysql.sys     | localhost |
+| root          | localhost |
+| sstuser       | localhost |
++---------------+-----------+
+4 rows in set (0.00 sec)
+
+mysql>
+						1.2.3.4 在任意每台数据服务器上查看集群信息
+
+mysql> show status like "%wsrep%";
+wsrep_incoming_addresses         | 192.168.4.72:3306,192.168.4.73:3306,192.168.4.71:3306 		
+wsrep_ready                      | ON 
+wsrep_cluster_status             | Primary                                              
+wsrep_connected                  | ON 
 
 				
