@@ -178,25 +178,72 @@ ens33:1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
 ens33: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
         inet 192.168.4.51  netmask 255.255.255.0  broadcast 192.168.4.255
 
-				4.3 配置数据库服务器
+			4.3 配置数据库服务器
  				配置数据库服务器51
          		         1 加载master和slave角色模块 并启用模块，禁止自动删除中继日志文件
-				 2 重启数据库服务器
-				配置数据库服务器52 
+ ]# vim /etc/my.cnf
+    plugin-load="rpl_semi_sync_master=semisync_master.so;rpl_semi_sync_slave=semisync_slave.so" 
+    rpl_semi_sync_master_enabled=1
+    rpl_semi_sync_slave_enabled=1
+
+    relay_log_purge=0
+  :wq
+					
+				 2 重启数据库服务
+				    ]# systemctl restart mysqld
+
+				配置数据库服务器52 	
 				 1 加载master和slave角色模块 并启用模块，禁止自动删除中继日志文件
+   ]# vim /etc/my.cnf
+	
+    plugin-load="rpl_semi_sync_master=semisync_master.so;rpl_semi_sync_slave=semisync_slave.so" 
+    rpl_semi_sync_master_enabled=1
+    rpl_semi_sync_slave_enabled=1
+    relay_log_purge=0	
+  :wq
 				 2 启用binlog日志
+				
+    ]# vim /etc/my.cnf
+      log_bin=master52
 				 3 数据数据同步连接用户repluser
-				 4 重启数据库服务器
+				  > grant replication slave on *.*  to  repluser@"%" identified by "123qqq...A";
+	
+				 4 重启数据库服务
+					]# systemctl restart mysqld
+
 				 5 查看slave 状态信息
+					]# show slave status \G
+
+					
 				配置数据库服务器53
 				 1 加载master和slave角色模块 并启用模块，禁止自动删除中继日志文件
+   ]# vim /etc/my.cnf
+	
+    plugin-load="rpl_semi_sync_master=semisync_master.so;rpl_semi_sync_slave=semisync_slave.so" 
+    rpl_semi_sync_master_enabled=1
+    rpl_semi_sync_slave_enabled=1
+    relay_log_purge=0	
+  :wq
 				 2 启用binlog日志
+
+     ]# vim /etc/my.cnf
+      log_bin=master52
 				 3 数据数据同步连接用户repluser
-				 4 重启数据库服务器
+           > grant replication slave on *.*  to  repluser@"%" identified by "123qqq...A";
+     
+			         4 重启数据库服务
+					]# systemctl restart mysqld
+
 				 5 查看slave 状态信息
+					]# show slave status \G
+
 			        公共配置
 					安装MHA_node软件
+					]# cd  mha
+					]# yum  -y  install mha4mysql-node-0.56-0.el6.noarch.rpm
+
 					添加监控用户root 密码是123qqq...A
+					> grant all on  *.*  to root@"%" identified by "123qqq...A";
 					
 		5 测试配置（192。168.4.57）
 		   	5.1 测试ssh免密登录配置	
