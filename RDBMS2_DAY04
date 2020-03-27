@@ -221,5 +221,86 @@ app1.cnf  app1.master_status.health  manager.log  master_ip_failover
 
 ]# masterha_stop --conf=/etc/mha/app1.cnf  # 停止管理服务的命令
 
+			7 测试集群配置
+			7.1 客户端访问集群存取数据
+				1 在数据库服务器授权连接用户
+					[root@host51 mha]# mysql -uroot -p123qqq...A
+ mysql> create database db9;
+Query OK, 1 row affected (0.01 sec)
 
+mysql> create table db9.t1(id int);
+Query OK, 0 rows affected (0.07 sec)
+
+mysql> grant select , insert on db9.* to yaya5@"%" identified by "123qqq...A";
+
+	[root@host53 mha]# mysql -uroot -p123qqq...A -e 'show grants for yaya5@"%"'
+	[root@host52 mha]# mysql -uroot -p123qqq...A -e 'show grants for yaya5@"%"'
+			        
+				 2 在客户端连接VIP 访问数据库服务
+					[root@host50 ~]# mysql -h192.168.4.100 -uyaya5 -p123qqq...A
+mysql> insert into db9.t1 values(999);
+mysql> insert into db9.t1 values(999);
+mysql> insert into db9.t1 values(999);
+mysql> select  * from db9.t1;
+
+[root@host53 mha]# mysql -uroot -p123qqq...A -e 'select  * from db9.t1'
+[root@host52 mha]# mysql -uroot -p123qqq...A -e 'select  * from db9.t1'
+
+			7.2 测试集群的高可用
+				[root@host51 mha]# systemctl  stop mysqld
+				[root@host50 mha]# ping -c 5 192.168.4.100
+				mysql> exit
+					Bye
+[root@host50 ~]# mysql -h192.168.4.100 -uyaya5 -p123qqq...A
+mysql> select @@hostname;
++------------+
+| @@hostname |
++------------+
+| host52     |
++------------+
+1 row in set (0.00 sec)
+
+mysql> select * from  db9.t1;
++------+
+| id   |
++------+
+|  999 |
+|  999 |
+|  999 |
++------+
+3 rows in set (0.00 sec)
+
+mysql> insert into db9.t1 values(8888);
+
+mysql> insert into db9.t1 values(8888);				
+
+[root@host53 mha]# mysql -uroot -p123qqq...A -e 'show slave status\G' | grep -i yes
+mysql: [Warning] Using a password on the command line interface can be insecure.
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+[root@host53 mha]# 
+[root@host53 mha]# mysql -uroot -p123qqq...A -e 'show slave status\G' | grep 192
+mysql: [Warning] Using a password on the command line interface can be insecure.
+                  Master_Host: 192.168.4.52
+[root@host53 mha]# 
+[root@host53 mha]# 
+[root@host53 mha]# mysql -uroot -p123qqq...A -e 'select  * from db9.t1' 
+
+[root@localhost mha]# masterha_check_status  --conf=/etc/mha/app1.cnf 
+app1 is stopped(2:NOT_RUNNING).
+[root@localhost mha]# 
+[root@localhost mha]# vim /etc/mha/app1.cnf  # 没有[server1] 的配置
+
+[root@host57 mha]# masterha_check_repl  --conf=/etc/mha/app1.cnf #监视的主机是否是主从结构
+
+[root@host57 ~]# masterha_manager --remove_dead_master_conf --ignore_last_failover   --conf=/etc/mha/app1.cnf
+Fri Mar 27 19:45:07 2020 - [warning] Global configuration file /etc/masterha_default.cnf not found. Skipping.
+Fri Mar 27 19:45:07 2020 - [info] Reading application default configuration from /etc/mha/app1.cnf..
+Fri Mar 27 19:45:07 2020 - [info] Reading server configuration from /etc/mha/app1.cnf..
+
+
+
+[root@host57 mha]# masterha_check_status  --conf=/etc/mha/app1.cnf 
+app1 (pid:5496) is running(0:PING_OK), master:192.168.4.52
+[root@localhost mha]# 
 
