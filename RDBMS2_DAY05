@@ -1,0 +1,21 @@
+++++++++++++++RDMBS2_DAY04 MHA知识点回顾
+		1 集群环境准备:  mysql主从同步  ssh免密登录  安装MHA依赖的软件包
+		2 配置管理主机： 编写主配置文件 创建故障切换脚本 部署vip地址给当前的主数据库服务器
+		3 配置数据库服务器： 配置半同步复制模式  用户授权 备用数据库服务器启用binlog日志
+		4 恢复宕机的数据库服务器到集群里：手动同步数据/配置主从/添加到集群
+
+++++++++++++++RDBMS2_DAY05-----数据库的高可用集群
+		一 PXC集群
+			1.1 PXC介绍
+			1.2 机器准备
+			1.2 创建PXC集群
+				1.2.1  在3台服务器上安装软件 时间16:30 
+ ]# rpm -ivh libev-4.15-1.el6.rf.x86_64.rpm    //安装依赖
+
+ ]# yum  -y  install  percona-xtrabackup-24-2.4.13-1.el7.x86_64.rpm
+
+ ]# rpm -ivh qpress-1.1-14.11.x86_64.rpm     //安装依赖
+
+ ]# tar -xvf  Percona-XtraDB-Cluster-5.7.25-31.35-r463-el7-x86_64-bundle.tar
+
+ ]# yum -y  install  Percona-XtraDB-Cluster-*.rpm
