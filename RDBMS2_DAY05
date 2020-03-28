@@ -252,4 +252,65 @@ default-storage-engine="myisam"
 					 mysql> alter table db3.user5 engine=名;
 					 mysql> alter table db3.user5 engine=myisam;
 				
-	
+			
+		练习存储引擎的使用 时间18分钟到 14:20  讲新知识		
+					
+				4 常用存储引擎介绍
+					4.1 myisam 存储引擎的特点
+						支持表级锁
+						不支持事务、事务回滚 、外键
+						表文件：
+							表名.frm  表结构
+							表名.MYI  表索引
+							表名.MYD  表数据
+
+					4.2 innodb 存储引擎的特点
+						支持行级锁
+						支持事务、事务回滚 、外键
+
+						表文件：
+							表名.frm 表结构
+							表名.ibd  表索引+表数据
+							
+					4.3 相关概念介绍
+                                            锁粒度：
+						表级锁：对1张表加锁
+						行级锁: 仅对被访问的行分别加锁
+					     锁类型：
+						读锁 共享锁(select）
+						写锁 排它锁或互斥锁（insert update  delete）
+
+					     锁的作用？ 解决并发访问时，对数据写冲突问题
+
+					     查看数据当前的锁信息：
+						mysql> show  status like "Table_locks_waited";
+
+				
+						事务？ 连接数据库服务后 操作数据 断开连接 ，这个过程被称作事务
+
+						事务回滚？ 操作数据错误时，可以恢复正确的状态。
+
+						事务日志文件：
+						    cd /var/lib/mysql/
+							ib_logfile0
+							ib_logfile1
+
+						外键？给外键字段赋值时，值只能在参考表的字段值里选择
+
+					4.4 事务特性
+						4.4.1 事务特性介绍
+							ACID 
+						4.4.2 事务特性演示 练习15分钟到 15:45 
+						连接1  
+						     create database db10;
+						     create table db10.t1(id int) engine=innodb;
+						     set autocommit=off;
+						     show variables like  "autocommit";
+						
+						     
+						 连接2  测试
+
+					建表时，如何决定表使用哪种存储引擎？
+						
+					查询访问多的表适合使用myisam存储引擎 节省CPU开销
+					写(I D U)操作多的表适合使用innodb存储引擎 并发访问量大		
