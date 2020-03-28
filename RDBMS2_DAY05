@@ -32,8 +32,7 @@ wsrep_node_address=192.168.4.73 #自己的ip
 wsrep_cluster_name=pxc-cluster  #台机器要一样
 wsrep_node_name=pxc-cluster-node-73 #自己的主机名
 wsrep_sst_auth="sstuser:123qqq...A" #台机器要一样
-										1.2.3  启动服务
-
+				1.2.3  启动服务
 					1.2.3.1 在71主机做集群的初始配置
 [root@host71 ~]# systemctl  start mysql@bootstrap.service
 [root@host71 ~]# netstat  -utnlp  | grep 3306
@@ -62,7 +61,7 @@ Query OK, 0 rows affected, 1 warning (0.01 sec)
 
 mysql> select user , host from mysql.user;
 
-						1.2.3.2 启动72主机的数据库服务
+					1.2.3.2 启动72主机的数据库服务
 
  [root@host72 ~]# setenforce 0
 [root@host72 ~]# 
@@ -188,27 +187,69 @@ mysql> show status like "%wsrep%";
 wsrep_incoming_addresses         | 192.168.4.72:3306,192.168.4.73:3306,192.168.4.71:3306 		
 wsrep_ready                      | ON 
 wsrep_cluster_status             | Primary                                              
-wsrep_connected                  | ON 
-										1.2.4  客户端访问集群存取数据
+wsrep_connected                  | ON
 
+							
+				1.2.4  客户端访问集群存取数据  练习 5分钟到 10:01 
+					1.2.4.1 在任意1台数据库服务器上添加授权用户给客户端连接使用
+mysql> create database db10;
+mysql> create table db10.user(id int primary key  auto_increment , name char(10)  );
+mysql> grant select , insert on  db10.* to plj@"%" identified by "123456";
+						1.2.4.2 50客户端连接
+50]# mysql -h192.168.4.71 -uplj -p123456
+50]# mysql -h192.168.4.72 -uplj -p123456
+50]# mysql -h192.168.4.71 -uplj -p123456
+					休息+测试到 10:35
 				1.2.5 测试高可用功能
+					 停止集群中的任意1台主机的数据服务
+					 客户端依然可以连接其他数据服务器查看和存数据
+
 				1.2.6 测试故障主机自动恢复功能
+					 把数据库服务启动后，会自动加入集群并并同步宕机期间的数据。				
+	 
+		二 MySQL存储引擎 (理论比较多) 休息到 11:00 点    
+			2.1 存储引擎介绍
+				2.1.1 MySQL服务体系结构 
+					由8个组件组成
+					1 管理工具： 软件安装后提供的命令
+					2 连接池：验证客户端连接及系统资源
+					3 SQL接口 : 把命令传递给mysql服务处理
+					4 分析器：执行的sql命令是否有语法错误及是否有访问权限
+					5 优化器： 优化执行的sql命令
+					6 查询缓存：存储 客户端曾经查询过的数据，存储数据的空间是从系统的物理内存划分出来的。
+					7 存储引擎：MySQL服务软件自带的功能程序，
+						    不同的存储引擎有不同的功能和数据存储方式
 				
-		
-	停止顺序 71  72  73 
-        启动顺序 73  72   71 
+					处理表的处理器（存储引擎决定对表的数据做访问时，数据服务如何处理客户端的访问。）
+					8 文件系统 ： 存储介质 （硬盘 iscsi ceph  lvm)
 
-  检查配置文件 mysqld.cnf  、 wsrep.cnf
+				2.1.2 MySQL服务的工作过程
+					1 处理存储数据的工作过程
+
+					2 处理查询数据的工作过程
+			2.2 存储引擎的管理
+				1 查看存储引擎
+					1.1  查看数据库服务使用的存储引擎
+						mysql> show engines;
+
+					1.1  查看当前已有的表使用的存储引擎
+						mysql> show create table 库名.表名 \G
+
+
+				3 指定表使用的存储引擎
+					mysql> create table db3.user5(class char(10))engine=名;
+					mysql> create table db3.user5(class char(10))engine=memory;
 	
-  在3台主机 都执行一下 setenforce 0
-  在3台主机 都执行一下  killall -9 mysqld  多执行几遍
-  
-  在3台主机  都执行一下 rm  -rf /var/lib/mysql/*
-  
+				2 修改
+					2.1 修改数据库服务使用的存储引擎
+]# vim /etc/my.cnf					
+[mysqld]
+default-storage-engine="myisam"
+:wq
 
-
-		二 MySQL存储引擎
-
-+++++++++++NoSQL_DAY01 
-           需要虚拟 50  51  52 
+]# systemctl  restart mysqld
+					2.2 修改表使用的存储引擎
+					 mysql> alter table db3.user5 engine=名;
+					 mysql> alter table db3.user5 engine=myisam;
 				
+	
