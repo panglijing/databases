@@ -68,3 +68,34 @@ dump.rdb
 
 
 	   4 常用命令的使用
+	    set   mset   get   mget      keys   type  
+		exists  ttl   expire  move 、select 
+		del   flushdb   flushall   save   shutdown
+ 
+           5 配置文件解析 （修改redis服务运行参数）
+			vim /etc/redis/6379.conf
+
+			[root@host50 redis-4.0.8]# vim /etc/redis/6379.conf 
+[root@host50 redis-4.0.8]# sed -n '70p;93p' /etc/redis/6379.conf 
+bind 192.168.4.50  #修改服务使用的ip地址
+port 6350   #修改服务使用的端口号
+[root@host50 redis-4.0.8]# 		
+
+[root@host50 redis-4.0.8]# netstat  -utnlp  | grep redis-server
+tcp        0      0 127.0.0.1:6379          0.0.0.0:*               LISTEN      5509/redis-server 1 
+[root@host50 redis-4.0.8]# 
+[root@host50 redis-4.0.8]# /etc/init.d/redis_6379 stop
+Stopping ...
+Redis stopped
+[root@host50 redis-4.0.8]# /etc/init.d/redis_6379 start
+Starting Redis server...
+[root@host50 redis-4.0.8]# netstat  -utnlp  | grep redis-server
+tcp        0      0 192.168.4.50:6350       0.0.0.0:*               LISTEN      5534/redis-server 1 
+[root@host50 redis-4.0.8]# 
+
+]# redis-cli  -h 192.168.4.50  -p 6350  #连接服务需指定ip 和端口
+
+]# redis-cli  -h 192.168.4.50  -p 6350 shutdown  #停止服务
+
+
+	   6 部署LNMP+Redis
