@@ -1,0 +1,42 @@
++++++++++++NoSQL_DAY02 Redis集群
+		1 创建redis集群
+			1.1 集群的功能：
+				解决服务的单点故障问题
+				解决数据的备份问题
+
+			1.2 拓扑结构与角色
+
+			1.3 集群的工作过程：
+				存储数据的工程过程？
+				查询数据的工作过程？
+
+			1.4 创建集群：
+				1 启用每台redis服务的集群功能 （时间到 14:45）
+ [root@host51 ~]# redis-cli  -h 192.168.4.51 -p 6351 shutdown
+[root@host51 ~]# 
+[root@host51 ~]# vim /etc/redis/6379.conf 
+[root@host51 ~]# 
+[root@host51 ~]# 
+[root@host51 ~]# sed -n '815p;823p;829p' /etc/redis/6379.conf 
+cluster-enabled yes
+cluster-config-file nodes-6379.conf
+cluster-node-timeout 5000
+[root@host51 ~]# 
+[root@host51 ~]# /etc/init.d/redis_6379 start
+Starting Redis server...
+[root@host51 ~]# 
+[root@host51 ~]# netstat  -utnlp  | grep  redis-server
+tcp        0      0 192.168.4.51:16351      0.0.0.0:*               LISTEN      9908/redis-server 1 
+tcp        0      0 192.168.4.51:6351       0.0.0.0:*               LISTEN      9908/redis-server 1 
+[root@host51 ~]# 
+[root@host51 ~]# redis-cli  -h 192.168.4.51 -p 6351
+192.168.4.51:6351> cluster info
+cluster_state:fail
+
+[root@host51 ~]# ls /var/lib/redis/6379/
+dump.rdb  nodes-6379.conf
+[root@host51 ~]# 
+[root@host51 ~]# cat /var/lib/redis/6379/nodes-6379.conf 
+ba7dde6d71b71246d39e28dd90603a0c5d26669b :0@0 myself,master - 0 0 0 connected
+vars currentEpoch 0 lastVoteEpoch 0
+[root@host51 ~]#
