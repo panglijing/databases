@@ -116,4 +116,53 @@ tcp        0      0 192.168.4.50:6350       0.0.0.0:*               LISTEN      
 
 		/etc/init.d/redis_6379 stop
 
-	   6 部署LNMP+Redis
+				6.1 部署LNMP网站环境
+			6.1.1 安装源码的nginx
+			6.1.2 安装php-fpm
+			6.1.3 启动服务
+			6.1.4 测试配置
+
+  293  rpm -q gcc
+  294  rpm -q pcre-devel
+  295  rpm -q zlib-devel
+  296  yum  -y  install gcc pcre-devel zlib-devel
+  297  tar -zxvf /var/ftp/upload/nginx-1.12.2.tar.gz 
+  298  cd nginx-1.12.2/
+  299  ./configure 
+  300  make && make install
+  301  ls /usr/local/
+  302  ls /usr/local/nginx/
+  303  yum -y install php-fpm
+]# vim +65 /usr/local/nginx/conf/nginx.conf
+ 65         location ~ \.php$ {
+ 66             root           html;
+ 67             fastcgi_pass   127.0.0.1:9000;
+ 68             fastcgi_index  index.php;
+ 69             include        fastcgi.conf;
+ 70         }
+:wq
+
+[root@host51 nginx-1.12.2]# /usr/local/nginx/sbin/nginx  -t
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+[root@host51 nginx-1.12.2]#
+
+[root@host51 nginx-1.12.2]# /usr/local/nginx/sbin/nginx
+[root@host51 nginx-1.12.2]# 
+[root@host51 nginx-1.12.2]# netstat -utnlp  | grep  80
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      4132/nginx: master  
+[root@host51 nginx-1.12.2]# setenforce 0
+[root@host51 nginx-1.12.2]# 
+[root@host51 nginx-1.12.2]# systemctl start php-fpm
+[root@host51 nginx-1.12.2]# netstat -utnlp  | grep  9000
+tcp        0      0 127.0.0.1:9000          0.0.0.0:*               LISTEN      4143/php-fpm: maste 
+[root@host51 nginx-1.12.2]#
+
+]# vim /usr/local/nginx/html/test.php
+<?php
+    echo  "l love china" ;
+?>
+:wq
+
+[root@host51 nginx-1.12.2]# curl  http://localhost/test.php
+l love china
