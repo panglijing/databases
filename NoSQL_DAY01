@@ -96,6 +96,24 @@ tcp        0      0 192.168.4.50:6350       0.0.0.0:*               LISTEN      
 ]# redis-cli  -h 192.168.4.50  -p 6350  #连接服务需指定ip 和端口
 
 ]# redis-cli  -h 192.168.4.50  -p 6350 shutdown  #停止服务
+				
+			设置服务连接密码
+			/etc/init.d/redis_6379 stop
 
+			vim /etc/redis/6379.conf
+			bind 192.168.4.50
+			
+			port 6350
+			requirepass 123456
+			:wq
+			/etc/init.d/redis_6379 start
+			[root@host50 ~]# redis-cli  -h 192.168.4.50  -p 6350 -a 123456
+			
+
+  [root@host50 ~]# vim  /etc/init.d/redis_6379 
+ 43             $CLIEXEC -h 192.168.4.50 -p 6350 -a 123456 shutdown
+		:wq
+
+		/etc/init.d/redis_6379 stop
 
 	   6 部署LNMP+Redis
