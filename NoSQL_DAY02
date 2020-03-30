@@ -79,3 +79,187 @@ redis-trib.rb
 [root@mgm57 redis-4.0.8]#
 
 [root@mgm57 ~]# redis-trib.rb  help
+					2.3 创建集群
+
+[root@mgm57 ~]# redis-trib.rb  create --replicas 1  192.168.4.51:6351 192.168.4.52:6352 \
+> 192.168.4.53:6353  192.168.4.54:6354 192.168.4.55:6355 192.168.4.56:6356
+> 192.168.4.53:6353  192.168.4.54:6354 192.168.4.55:6355 192.168.4.56:6356
+>>> Creating cluster
+>>> Performing hash slots allocation on 6 nodes...
+Using 3 masters:
+192.168.4.51:6351
+192.168.4.52:6352
+192.168.4.53:6353
+Adding replica 192.168.4.55:6355 to 192.168.4.51:6351
+Adding replica 192.168.4.56:6356 to 192.168.4.52:6352
+Adding replica 192.168.4.54:6354 to 192.168.4.53:6353
+M: ba7dde6d71b71246d39e28dd90603a0c5d26669b 192.168.4.51:6351
+   slots:0-5460 (5461 slots) master
+M: a228c623bffc53427ff05bde95b462a0bd443dce 192.168.4.52:6352
+   slots:5461-10922 (5462 slots) master
+M: 862c3b64be6039d37fe45299b258e3d843c2256a 192.168.4.53:6353
+   slots:10923-16383 (5461 slots) master
+S: 9a33874bfa6ddf623f0efad57db6cb689cd2bc25 192.168.4.54:6354
+   replicates 862c3b64be6039d37fe45299b258e3d843c2256a
+S: f8422efee502c554be8ed767e88462aa4afd174d 192.168.4.55:6355
+   replicates ba7dde6d71b71246d39e28dd90603a0c5d26669b
+S: ede6a668242da4d50cba3f26ea7b9af3e33fa95d 192.168.4.56:6356
+   replicates a228c623bffc53427ff05bde95b462a0bd443dce
+Can I set the above configuration? (type 'yes' to accept): yes //同意
+>>> Nodes configuration updated
+>>> Assign a different config epoch to each node
+>>> Sending CLUSTER MEET messages to join the cluster
+Waiting for the cluster to join...
+>>> Performing Cluster Check (using node 192.168.4.51:6351)
+M: ba7dde6d71b71246d39e28dd90603a0c5d26669b 192.168.4.51:6351
+   slots:0-5460 (5461 slots) master
+   1 additional replica(s)
+M: 862c3b64be6039d37fe45299b258e3d843c2256a 192.168.4.53:6353
+   slots:10923-16383 (5461 slots) master
+   1 additional replica(s)
+S: f8422efee502c554be8ed767e88462aa4afd174d 192.168.4.55:6355
+   slots: (0 slots) slave
+   replicates ba7dde6d71b71246d39e28dd90603a0c5d26669b
+S: ede6a668242da4d50cba3f26ea7b9af3e33fa95d 192.168.4.56:6356
+   slots: (0 slots) slave
+   replicates a228c623bffc53427ff05bde95b462a0bd443dce
+M: a228c623bffc53427ff05bde95b462a0bd443dce 192.168.4.52:6352
+   slots:5461-10922 (5462 slots) master
+   1 additional replica(s)
+S: 9a33874bfa6ddf623f0efad57db6cb689cd2bc25 192.168.4.54:6354
+   slots: (0 slots) slave
+   replicates 862c3b64be6039d37fe45299b258e3d843c2256a
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+[root@mgm57 ~]# 
+                     创建集群排错时间  到 16:20
+	
+	在6台redis 服务器 还原
+
+        1  停止redis服务
+	2  ]# rm -rf  /var/lib/redis/6379/*
+	3  启动redis服务
+
+        4 在管理主机执行创建集群的命令
+	
+				3 在管理主机查看集群信息	
+[root@mgm57 ~]# redis-trib.rb  info  192.168.4.53:6353
+192.168.4.53:6353 (862c3b64...) -> 0 keys | 5461 slots | 1 slaves.
+192.168.4.51:6351 (ba7dde6d...) -> 0 keys | 5461 slots | 1 slaves.
+192.168.4.52:6352 (a228c623...) -> 0 keys | 5462 slots | 1 slaves.
+[OK] 0 keys in 3 masters.
+0.00 keys per slot on average.
+[root@mgm57 ~]#
+
+[root@mgm57 ~]# redis-trib.rb  check   192.168.4.53:6353
+>>> Performing Cluster Check (using node 192.168.4.53:6353)
+M: 862c3b64be6039d37fe45299b258e3d843c2256a 192.168.4.53:6353
+   slots:10923-16383 (5461 slots) master
+   1 additional replica(s)
+M: ba7dde6d71b71246d39e28dd90603a0c5d26669b 192.168.4.51:6351
+   slots:0-5460 (5461 slots) master
+   1 additional replica(s)
+M: a228c623bffc53427ff05bde95b462a0bd443dce 192.168.4.52:6352
+   slots:5461-10922 (5462 slots) master
+   1 additional replica(s)
+S: f8422efee502c554be8ed767e88462aa4afd174d 192.168.4.55:6355
+   slots: (0 slots) slave
+   replicates ba7dde6d71b71246d39e28dd90603a0c5d26669b
+S: ede6a668242da4d50cba3f26ea7b9af3e33fa95d 192.168.4.56:6356
+   slots: (0 slots) slave
+   replicates a228c623bffc53427ff05bde95b462a0bd443dce
+S: 9a33874bfa6ddf623f0efad57db6cb689cd2bc25 192.168.4.54:6354
+   slots: (0 slots) slave
+   replicates 862c3b64be6039d37fe45299b258e3d843c2256a
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+[root@mgm57 ~]#
+
+
+				4 在客户访问集群存取数据(客户端可以连接集群中的任意1台机器存取数据)
+				练习时间 5分钟 到 16:43 
+[root@host50 ~]# redis-cli -c -h 192.168.4.54 -p 6354
+192.168.4.54:6354> keys *
+(empty list or set)
+192.168.4.54:6354> set x 101
+-> Redirected to slot [16287] located at 192.168.4.53:6353
+OK
+
+192.168.4.53:6353> keys *
+1) "x"
+192.168.4.53:6353> set y 201
+OK
+192.168.4.53:6353> keys *
+1) "y"
+2) "x"
+192.168.4.53:6353> set z 301
+-> Redirected to slot [8157] located at 192.168.4.52:6352
+OK
+192.168.4.52:6352> keys *
+1) "z"
+192.168.4.52:6352> get x
+-> Redirected to slot [16287] located at 192.168.4.53:6353
+"101"
+192.168.4.53:6353> keys *
+1) "y"
+2) "x"
+192.168.4.53:6353> get z
+-> Redirected to slot [8157] located at 192.168.4.52:6352
+"301"
+192.168.4.52:6352>
+				
+			 测试集群功能  5分钟时间 到 17:33 
+				1 高可用功能：master宕机后对应的slave自动被选举为master
+				2 数据自动备份功能 （从服务器 会自动同步主服务器的数据到本机）
+				3 故障自动恢复功能 ：原master启动后 会自动配置为当前master的slave
+
+		2.2.1 移除slave  角色的服务器
+命令格式 ]#redis-trib.rb  del-node 192.168.4.52:6352  被移除主机的id值
+
+[root@mgm57 ~]# redis-trib.rb info  192.168.4.54:6354
+192.168.4.52:6352 (a228c623...) -> 3 keys | 5462 slots | 1 slaves.
+192.168.4.53:6353 (862c3b64...) -> 5 keys | 5461 slots | 1 slaves.
+192.168.4.55:6355 (f8422efe...) -> 2 keys | 5461 slots | 1 slaves.
+[OK] 10 keys in 3 masters.
+0.00 keys per slot on average.
+[root@mgm57 ~]# 
+[root@mgm57 ~]# redis-trib.rb check 192.168.4.54:6354
+>>> Performing Cluster Check (using node 192.168.4.54:6354)
+S: 9a33874bfa6ddf623f0efad57db6cb689cd2bc25 192.168.4.54:6354
+   slots: (0 slots) slave
+   replicates 862c3b64be6039d37fe45299b258e3d843c2256a
+M: a228c623bffc53427ff05bde95b462a0bd443dce 192.168.4.52:6352
+   slots:5461-10922 (5462 slots) master
+   1 additional replica(s)
+S: ede6a668242da4d50cba3f26ea7b9af3e33fa95d 192.168.4.56:6356
+   slots: (0 slots) slave
+   replicates a228c623bffc53427ff05bde95b462a0bd443dce
+M: 862c3b64be6039d37fe45299b258e3d843c2256a 192.168.4.53:6353
+   slots:10923-16383 (5461 slots) master
+   1 additional replica(s)
+M: f8422efee502c554be8ed767e88462aa4afd174d 192.168.4.55:6355
+   slots:0-5460 (5461 slots) master
+   1 additional replica(s)
+S: ba7dde6d71b71246d39e28dd90603a0c5d26669b 192.168.4.51:6351
+   slots: (0 slots) slave
+   replicates f8422efee502c554be8ed767e88462aa4afd174d
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+[root@mgm57 ~]# redis-trib.rb del-node  192.168.4.52:6352 ba7dde6d71b71246d39e28dd90603a0c5d26669b 
+>>> Removing node ba7dde6d71b71246d39e28dd90603a0c5d26669b from cluster 192.168.4.52:6352
+>>> Sending CLUSTER FORGET messages to the cluster...
+>>> SHUTDOWN the node.
+[root@mgm57 ~]# 
+[root@mgm57 ~]# redis-trib.rb info  192.168.4.54:6354
+192.168.4.52:6352 (a228c623...) -> 3 keys | 5462 slots | 1 slaves.
+192.168.4.53:6353 (862c3b64...) -> 5 keys | 5461 slots | 1 slaves.
+192.168.4.55:6355 (f8422efe...) -> 2 keys | 5461 slots | 0 slaves.
+[OK] 10 keys in 3 masters.
+0.00 keys per slot on average.
+[root@mgm57 ~]# 
