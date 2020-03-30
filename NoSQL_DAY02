@@ -40,3 +40,42 @@ dump.rdb  nodes-6379.conf
 ba7dde6d71b71246d39e28dd90603a0c5d26669b :0@0 myself,master - 0 0 0 connected
 vars currentEpoch 0 lastVoteEpoch 0
 [root@host51 ~]#
+
+		2 在管理主机创建集群
+					2.1 部署脚本运行环境
+[root@mgm57 ~]# rpm -q ruby
+未安装软件包 ruby 
+[root@mgm57 ~]# rpm -q rubygems
+未安装软件包 rubygems 
+[root@mgm57 ~]# 
+[root@mgm57 ~]# yum  -y  install  ruby   rubygems
+
+[root@mgm57 ~]# which  gem
+/usr/bin/gem
+[root@mgm57 ~]# gem install  redis-3.2.1.gem 
+Successfully installed redis-3.2.1
+Parsing documentation for redis-3.2.1
+Installing ri documentation for redis-3.2.1
+1 gem installed
+[root@mgm57 ~]# 
+					2.2 创建管理脚本
+
+[root@mgm57 ~]# tar -zxvf redis-4.0.8.tar.gz
+[root@mgm57 ~]# cd redis-4.0.8/
+[root@mgm57 redis-4.0.8]# ls
+00-RELEASENOTES  COPYING  Makefile   redis.conf       runtest-sentinel  tests
+BUGS             deps     MANIFESTO  runtest          sentinel.conf     utils
+CONTRIBUTING     INSTALL  README.md  runtest-cluster  src
+[root@mgm57 redis-4.0.8]# ls src/*.rb  
+src/redis-trib.rb
+[root@mgm57 redis-4.0.8]# echo  $PATH
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
+[root@mgm57 redis-4.0.8]# 
+[root@mgm57 redis-4.0.8]# mkdir /root/bin
+[root@mgm57 redis-4.0.8]# cp src/redis-trib.rb /root/bin/
+[root@mgm57 redis-4.0.8]# chmod  +x /root/bin/redis-trib.rb 
+[root@mgm57 redis-4.0.8]# ls /root/bin/
+redis-trib.rb
+[root@mgm57 redis-4.0.8]#
+
+[root@mgm57 ~]# redis-trib.rb  help
