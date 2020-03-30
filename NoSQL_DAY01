@@ -168,13 +168,18 @@ tcp        0      0 127.0.0.1:9000          0.0.0.0:*               LISTEN      
 l love china
 
 				6.2 配置PHP支持Redis
-			6.2.1 安装提供redis模块的软件
-			6.2.2 加载redis模块
+					6.2.1 安装提供redis模块的软件
+					6.2.2 加载redis模块
 			
- ]# yum -y  install php  php-devel automake autoconf
-
-
-
+]# yum -y  install php  php-devel automake autoconf
+332  tar -zxvf /var/ftp/upload/php-redis-2.2.4.tar.gz 
+  333  ls
+  334  cd phpredis-2.2.4/
+  335  ls
+  336  phpize 
+  337  ls
+  338  ./configure  --with-php-config=/usr/bin/php-config 
+  339  make
 
 [root@host51 phpredis-2.2.4]# make install
 Installing shared extensions:     /usr/lib64/php/modules/
