@@ -166,3 +166,31 @@ tcp        0      0 127.0.0.1:9000          0.0.0.0:*               LISTEN      
 
 [root@host51 nginx-1.12.2]# curl  http://localhost/test.php
 l love china
+
+				6.2 配置PHP支持Redis
+			6.2.1 安装提供redis模块的软件
+			6.2.2 加载redis模块
+			
+ ]# yum -y  install php  php-devel automake autoconf
+
+
+
+
+[root@host51 phpredis-2.2.4]# make install
+Installing shared extensions:     /usr/lib64/php/modules/
+[root@host51 phpredis-2.2.4]# 
+[root@host51 phpredis-2.2.4]# ls /usr/lib64/php/modules/
+curl.so  fileinfo.so  json.so  phar.so  redis.so  zip.so
+[root@host51 phpredis-2.2.4]#
+
+]# vim  +728 /etc/php.ini
+ 728 extension_dir = "/usr/lib64/php/modules/"
+ 729 ; On windows:
+ 730 extension = "redis.so"
+:wq
+
+[root@host51 phpredis-2.2.4]# systemctl  restart  php-fpm
+[root@host51 phpredis-2.2.4]# 
+[root@host51 phpredis-2.2.4]# php -m  | grep -i redis
+redis
+[root@host51 phpredis-2.2.4]# 
