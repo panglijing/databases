@@ -196,6 +196,37 @@ curl.so  fileinfo.so  json.so  phar.so  redis.so  zip.so
 
 [root@host51 phpredis-2.2.4]# systemctl  restart  php-fpm
 [root@host51 phpredis-2.2.4]# 
+
+			6.3 测试配置
+			6.3.1 查看模块	
+
 [root@host51 phpredis-2.2.4]# php -m  | grep -i redis
 redis
 [root@host51 phpredis-2.2.4]# 
+
+
+
+			6.3.2 编写存取数据的php脚本并访问脚本
+]# vim /usr/local/nginx/html/x.php
+<?php
+$redis = new redis();
+$redis->connect("192.168.4.50","6350");
+$redis->auth("123456");
+$redis->set("school","tarena");
+echo $redis->get("school");
+?>
+
+[root@host51 phpredis-2.2.4]# curl  http://localhost/x.php
+tarena
+			6.3.3 在数据库服务器本机查看数据
+
+[root@host50 ~]# redis-cli  -h 192.168.4.50  -p 6350 -a 123456
+192.168.4.50:6350> keys *
+1) "school"
+2) "y"
+3) "z"
+4) "x"
+192.168.4.50:6350> get school
+"tarena"
+192.168.4.50:6350> 			
+
