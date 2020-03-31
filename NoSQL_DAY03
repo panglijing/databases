@@ -23,3 +23,87 @@ ERR This instance has cluster support disabled
 # Replication
 role:master
 connected_slaves:0
+                    
+	  1 Redis主从复制
+		数据存储结构，角色分为
+		主服务器 ：客户端存取数据连接主机
+		从服务器 ：自动同步主服务器的数据
+		
+	        主从复制结构：分为
+			一主一从  把52配为51的从服务器
+			一主多从
+			主从从 
+		主从复制的工作过程？
+
+
+		相关命令：
+			info replication 
+			slaveof  主服务器Ip  主服务器端口
+			slaveof  no one
+		配置redis主从复制
+
+			一主一从  把52配置为51的从服务器 10分钟时间到 15:08
+				命令行临时配置 马上生效 
+                              	      > slaveof  192.168.4.51  6351
+
+				修改配置文件 永久配置
+				[root@host52 ~]# vim +282 /etc/redis/6379.conf 
+			
+					slaveof 192.168.4.51 6351
+				:wq
+
+			一主多从  把53配置为51的从服务器  15分钟时间 到15:35 讲新知识
+
+                                > slaveof  192.168.4.51  6351
+
+			[root@host53 ~]# vim +282 /etc/redis/6379.conf 
+			
+					slaveof 192.168.4.51 6351
+				:wq
+
+
+
+                  			配置带验证的主从复制（主服务器有连接密码）
+				1 主服务器设置连接密码
+					命令修改直接生效
+192.168.4.51:6351> CONFIG set requirepass 654321
+OK
+192.168.4.51:6351> CONFIG GET requirepass
+(error) NOAUTH Authentication required.
+192.168.4.51:6351> 
+192.168.4.51:6351> auth 654321
+OK
+192.168.4.51:6351> config get requirepass
+1) "requirepass"
+2) "654321"
+192.168.4.51:6351> CONFIG rewrite
+OK
+192.168.4.51:6351> exit
+[root@host51 ~]# tail -1 /etc/redis/6379.conf 
+requirepass "654321"
+[root@host51 ~]# 
+
+				2 从服务器指定主服务器的密码
+				  修改主配置文件,需要重启redis服务 才生效
+				   	vim  /etc/redis/6379.conf				
+                		        	289 masterauth 654321
+					:wq
+				        
+ 命令行配置 不需要重启服务
+
+192.168.4.53:6353> confige set masterauth 654321
+192.168.4.53:6353> config set masterauth 654321
+OK
+192.168.4.53:6353> config rewrite
+OK
+192.168.4.53:6353> exit
+[root@host53 ~]# tail -1 /etc/redis/6379.conf 
+masterauth "654321"
+[root@host53 ~]# redis-cli  -h 192.168.4.53 -p 6353 
+192.168.4.53:6353> info replication
+# Replication
+role:slave
+master_host:192.168.4.51
+master_port:6351
+master_link_status:up
+
