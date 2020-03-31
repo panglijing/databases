@@ -1,0 +1,25 @@
+ 把集群中的主机恢复为独立的redis服务器
+[root@host51 ~]# redis-cli  -h 192.168.4.51 -p 6351 shutdown
+[root@host51 ~]# rm -rf /var/lib/redis/6379/*
+[root@host51 ~]# sed -i '815s/^/#/' /etc/redis/6379.conf 
+[root@host51 ~]# sed -i '823s/^/#/' /etc/redis/6379.conf 
+[root@host51 ~]# sed -i '829s/^/#/' /etc/redis/6379.conf 
+[root@host51 ~]# 
+[root@host51 ~]# sed -n '815p;823p;829p' /etc/redis/6379.conf 
+#cluster-enabled yes
+#cluster-config-file nodes-6379.conf
+#cluster-node-timeout 5000
+[root@host51 ~]# 
+[root@host51 ~]# /etc/init.d/redis_6379 start
+Starting Redis server...
+[root@host51 ~]# netstat -utnlp  | grep  redis-server
+tcp        0      0 192.168.4.51:6351       0.0.0.0:*               LISTEN      2411/redis-server 1 
+[root@host51 ~]#
+[root@host51 ~]# redis-cli -h 192.168.4.51 -p 6351
+192.168.4.51:6351> cluster info
+ERR This instance has cluster support disabled
+192.168.4.51:6351> 
+192.168.4.51:6351> info replication
+# Replication
+role:master
+connected_slaves:0
