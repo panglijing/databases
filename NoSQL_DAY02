@@ -281,3 +281,45 @@ S: ba7dde6d71b71246d39e28dd90603a0c5d26669b 192.168.4.51:6351
    > set  v20  bob
    > get  v20
    > info  replication  //查看复制信息
+   
+   		2.2.3  添加master 角色的服务器 （休息到 10:30）
+					  1 运行redis服务
+					  2 启用集群功能
+	
+		                          3 在管理主机把主机添加到集群里，并查看
+                                                3.1 添加主机到集群里
+	[root@mgm57 ~]# redis-trib.rb  add-node 192.168.4.58:6379  192.168.4.55:6355
+	[root@mgm57 ~]# redis-trib.rb  info  192.168.4.55:6355
+192.168.4.55:6355 (f8422efe...) -> 3 keys | 5461 slots | 1 slaves.
+192.168.4.58:6379 (adfcc89c...) -> 0 keys | 0 slots | 0 slaves.
+192.168.4.52:6352 (a228c623...) -> 5 keys | 5462 slots | 1 slaves.
+192.168.4.53:6353 (862c3b64...) -> 9 keys | 5461 slots | 0 slaves.
+[OK] 17 keys in 4 masters.
+0.00 keys per slot on average.
+[root@mgm57 ~]# 
+						3.2 分配槽
+[root@mgm57 ~]# redis-trib.rb  reshard 192.168.4.55:6355
+	移出hash槽个数
+	接收hash槽主机ID
+	移出hash槽主机ID
+	同意配置
+
+[root@mgm57 ~]# redis-trib.rb  info 192.168.4.55:6355
+192.168.4.55:6355 (f8422efe...) -> 2 keys | 4096 slots | 1 slaves.
+192.168.4.58:6379 (adfcc89c...) -> 6 keys | 4096 slots | 0 slaves.
+192.168.4.52:6352 (a228c623...) -> 4 keys | 4096 slots | 1 slaves.
+192.168.4.53:6353 (862c3b64...) -> 5 keys | 4096 slots | 0 slaves.
+[OK] 17 keys in 4 masters.
+0.00 keys per slot on average.
+[root@mgm57 ~]# 						
+						3.3 查看槽
+[root@mgm57 ~]# redis-trib.rb  check  192.168.4.55:6355
+M: adfcc89cbd79dc8458faf594d7317168b4135ccf 192.168.4.58:6379
+   slots:0-1364,5461-6826,10923-12287 (4096 slots) master
+   0 additional replica(s)
+						3.3 客户端连接
+~]# redis-cli -c  -h 192.168.4.52 -p 6352					
+192.168.4.52:6352> set a2 1
+-> Redirected to slot [11786] located at 192.168.4.58:6379
+OK
+192.168.4.58:6379> 
