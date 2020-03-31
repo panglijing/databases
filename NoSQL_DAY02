@@ -323,3 +323,36 @@ M: adfcc89cbd79dc8458faf594d7317168b4135ccf 192.168.4.58:6379
 -> Redirected to slot [11786] located at 192.168.4.58:6379
 OK
 192.168.4.58:6379> 
+		2.2.4 移除master 角色的服务器
+					  1  释放占用的槽
+[root@mgm57 ~]# redis-trib.rb reshard 192.168.4.53:6353
+ 
+指定移出slots   个数
+指定接收slots   主机ID
+指定移出slots   主机ID
+统一配置
+
+[root@mgm57 ~]# redis-trib.rb info 192.168.4.53:6353
+192.168.4.53:6353 (862c3b64...) -> 5 keys | 4096 slots | 0 slaves.
+192.168.4.58:6379 (adfcc89c...) -> 7 keys | 4096 slots | 1 slaves.
+192.168.4.52:6352 (a228c623...) -> 7 keys | 8192 slots | 1 slaves.
+192.168.4.55:6355 (f8422efe...) -> 0 keys | 0 slots | 0 slaves.
+[OK] 19 keys in 4 masters.
+0.00 keys per slot on average.
+[root@mgm57 ~]#
+
+					  2  删除主机
+[root@mgm57 ~]# redis-trib.rb del-node 192.168.4.53:6353 f8422efee502c554be8ed767e88462aa4afd174d
+>>> Removing node f8422efee502c554be8ed767e88462aa4afd174d from cluster 192.168.4.53:6353
+>>> Sending CLUSTER FORGET messages to the cluster...
+>>> SHUTDOWN the node.
+[root@mgm57 ~]# 
+
+					  3  查看
+[root@mgm57 ~]# redis-trib.rb info 192.168.4.53:6353
+192.168.4.53:6353 (862c3b64...) -> 5 keys | 4096 slots | 0 slaves.
+192.168.4.58:6379 (adfcc89c...) -> 7 keys | 4096 slots | 1 slaves.
+192.168.4.52:6352 (a228c623...) -> 7 keys | 8192 slots | 1 slaves.
+[OK] 19 keys in 3 masters.
+0.00 keys per slot on average.
+[root@mgm57 ~]#
