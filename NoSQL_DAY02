@@ -356,3 +356,23 @@ OK
 [OK] 19 keys in 3 masters.
 0.00 keys per slot on average.
 [root@mgm57 ~]#
+
+
+			重新分配所有主服务器占用槽的个数
+		[root@mgm57 ~]# redis-trib.rb rebalance 192.168.4.53:6353
+[root@mgm57 ~]# redis-trib.rb info 192.168.4.53:6353
+192.168.4.53:6353 (862c3b64...) -> 6 keys | 5462 slots | 0 slaves.
+192.168.4.58:6379 (adfcc89c...) -> 8 keys | 5461 slots | 1 slaves.
+192.168.4.52:6352 (a228c623...) -> 5 keys | 5461 slots | 1 slaves.
+[OK] 19 keys in 3 masters.
+0.00 keys per slot on average.
+[root@mgm57 ~]# 
+		3 把移除的服务器，再添加到集群里
+			]# /etc/init.d/redis_6379 start
+			]# redis-cli -h ip地址  -p 端口
+  			 > cluster info
+			 > cluster nodes
+			 > cluster reset  清除集群信息
+			 > cluster info
+			 > cluster nodes
+		[root@mgm57 ~]# redis-trib.rb add-node [--slave] [ --master-id f8422efee502c554be8ed767e88462aa4afd174d ]  Ip地址:端口  192.168.4.52:6352
