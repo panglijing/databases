@@ -106,4 +106,37 @@ role:slave
 master_host:192.168.4.51
 master_port:6351
 master_link_status:up
+				配置主从从结构 54主---->55从---->56从  (时间到 16:23)
+				54 不用配置 默认就是master角色
+				55 >slaveof  192.168.4.54  6354
+				56 >slaveof  192.168.4.55  6355
+				
+				54 > info replication
+				55 > info replication
+				56 > info replication
 
+				54 > mset a 1 b 2 c 3 
+
+	  2 哨兵服务 
+		 监视master服务器，发现master宕机后，将从服务器升级为主服务器
+		 要求：配置哨兵服务，监视主从从结构中 主服务器54
+		 配置步骤：
+			1 安装源码redis软件
+			2 创建主配置文件并编辑
+			vim  /etc/sentinel.conf
+			  bind 192.168.4.57
+			  sentinel   monitor  redis_server   192.168.4.54   6354  1
+			:wq
+
+			3 启动哨兵服务
+			     [root@mgm57 ~ ]# redis-sentinel  /etc/sentinel.conf 
+
+			4 测试配置
+				4.1 停止54主机的redis服务
+				[root@HOST54 ~]# redis-cli  -h 192.168.4.54 -p 6354  shutdown
+
+				4.2 在从服务器55上查看复制信息
+					192.168.4.55:6355> info replication
+					# Replication
+					role:master
+					connected_slaves:1
