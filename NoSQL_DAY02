@@ -263,3 +263,21 @@ S: ba7dde6d71b71246d39e28dd90603a0c5d26669b 192.168.4.51:6351
 [OK] 10 keys in 3 masters.
 0.00 keys per slot on average.
 [root@mgm57 ~]# 
+
+		2.2.2  添加slave 角色的服务器 把 192.168.4.58 添加到集群里做服务器
+					  1 运行redis服务
+					  2 启用集群功能
+					  3 在管理主机把主机添加到集群里，并查看
+ ]#redis-trib.rb  add-node  --slave  [ --master-id  id值  ] ip地址:端口  192.168.4.51:6351
+
+
+ [root@mgm57 ~]# redis-trib.rb add-node --slave 192.168.4.58:6379  192.168.4.52:6352
+ [root@mgm57 ~]# redis-trib.rb info  192.168.4.52:6352
+ [root@mgm57 ~]# redis-trib.rb check 192.168.4.52:6352
+
+	
+				  4 客户端访问集群存取数据
+  ]# redis-cli  -c  -h 192.168.4.58 -p 端口
+   > set  v20  bob
+   > get  v20
+   > info  replication  //查看复制信息
