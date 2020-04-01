@@ -296,4 +296,11 @@ auto-aof-rewrite-percentage  100   //再次重写，增长百分比
 
 			相关命令： hset  hmset   hget  hmget   hkeys  hvals  hgetall  hdel
 				
-				
+			++++++++++++NoSQL_day03 知识点回顾
+		1 Redis主从复制： 主从复制功能、结构类型 、 工作过程 、配置主从复制、 带验证的主从复制
+		2 配置哨兵： 服务功能、配置哨兵服务器（安装redis软件 编辑配置  启动哨兵服务  验证配置）
+		3 持久化
+			3.1  RDB
+			3.2  AOF
+		4 数据类型
+			字符 、 列表、 hash	
