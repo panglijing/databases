@@ -1,0 +1,76 @@
+++++++++监控与安全_day01
+		相关概念
+		zabbix介绍
+		搭建zabbix监控服务器 192.168.2.5
+			1 部署运行环境LNMP
+   9  yum -y  install gcc  pcre-devel zlib-devel
+   10  tar -zxvf  nginx-1.12.2.tar.gz 
+   11  cd nginx-1.12.2/
+   12  ./configure 
+   13  make  && make install
+   14  ls /usr/local/nginx/
+[root@zabbix05 nginx-1.12.2]# vim +65 /usr/local/nginx/conf/nginx.conf
+[root@zabbix05 nginx-1.12.2]# 
+[root@zabbix05 nginx-1.12.2]# sed -n '65,70p' /usr/local/nginx/conf/nginx.conf
+        location ~ \.php$ {
+            root           html;
+            fastcgi_pass   127.0.0.1:9000;
+            fastcgi_index  index.php;
+            include        fastcgi.conf;
+        }
+[root@zabbix05 nginx-1.12.2]# 
+[root@zabbix05 nginx-1.12.2]# /usr/local/nginx/sbin/nginx  -t
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+[root@zabbix05 nginx-1.12.2]# 
+
+[root@zabbix05 nginx-1.12.2]# /usr/local/nginx/sbin/nginx 
+[root@zabbix05 nginx-1.12.2]# 
+[root@zabbix05 nginx-1.12.2]# netstat  -utnlp  | grep  80
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      4084/nginx: master  
+[root@zabbix05 nginx-1.12.2]#
+
+[root@zabbix05 ~]# yum  -y install php-fpm
+
+[root@zabbix05 ~]# systemctl  start php-fpm
+[root@zabbix05 ~]# netstat  -utnlp  | grep  9000
+tcp        0      0 127.0.0.1:9000          0.0.0.0:*               LISTEN      4130/php-fpm: maste 
+[root@zabbix05 ~]#
+
+[root@zabbix05 ~]# yum -y  install mariadb-server  mariadb  mariadb-devel
+[root@zabbix05 ~]# systemctl  start mariadb
+[root@zabbix05 ~]# systemctl  start mariadb
+[root@zabbix05 ~]# netstat  -utnlp  | grep 3306
+tcp        0      0 0.0.0.0:3306            0.0.0.0:*               LISTEN      4425/mysqld         
+[root@zabbix05 ~]# ls /var/lib/mysql/
+aria_log.00000001  ibdata1      ib_logfile1  mysql.sock          test
+aria_log_control   ib_logfile0  mysql        performance_schema
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# mysql
+
+MariaDB [(none)]> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| test               |
++--------------------+
+4 rows in set (0.00 sec)
+
+MariaDB [(none)]> 	
+
+[root@zabbix05 ~]#vim  /usr/local/nginx/html/test.php
+<?php
+ echo  "hello boy";
+?>
+[root@zabbix05 ~]# 
+
+[root@zabbix05 ~]# setenforce 0
+
+[root@zabbix05 ~]# systemctl  stop firewalld
+[root@zabbix05 ~]#
+
+[root@zabbix05 ~]# curl  http://localhost/test.php
+hello boy
