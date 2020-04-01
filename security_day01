@@ -74,3 +74,25 @@ MariaDB [(none)]>
 
 [root@zabbix05 ~]# curl  http://localhost/test.php
 hello boy
+
+			2 安装源码zabbix软件
+				解压 配置  安装
+ 
+yum -y install  net-snmp-devel curl-devel    libevent-devel
+ 
+tar -zxvf zabbix-3.4.4.tar.gz 
+cd zabbix-3.4.4/
+./configure  --enable-server --enable-proxy --enable-agent --with-mysql=/usr/bin/mysql_config --with-net-snmp --with-libcurl
+
+make install
+
+[root@zabbix05 zabbix-3.4.4]# ls /usr/local/etc/
+zabbix_agentd.conf    zabbix_proxy.conf    zabbix_server.conf
+zabbix_agentd.conf.d  zabbix_proxy.conf.d  zabbix_server.conf.d
+[root@zabbix05 zabbix-3.4.4]# 
+[root@zabbix05 zabbix-3.4.4]# ls /usr/local/bin
+zabbix_get  zabbix_sender
+[root@zabbix05 zabbix-3.4.4]# 
+[root@zabbix05 zabbix-3.4.4]# ls /usr/local/sbin/
+zabbix_agentd  zabbix_proxy  zabbix_server
+[root@zabbix05 zabbix-3.4.4]# 
