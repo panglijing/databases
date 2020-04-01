@@ -121,7 +121,7 @@ master_link_status:up
 		 监视master服务器，发现master宕机后，将从服务器升级为主服务器
 		 要求：配置哨兵服务，监视主从从结构中 主服务器54
 		 配置步骤：
-			1 安装源码redis软件
+			1 安装源码redis软件(不需要做初始化)
 			2 创建主配置文件并编辑
 			vim  /etc/sentinel.conf
 			  bind 192.168.4.57
@@ -140,3 +140,160 @@ master_link_status:up
 					# Replication
 					role:master
 					connected_slaves:1
+					
+		3 持久化 ：redis服务运行过程中，会定期的把内存里的数据保存到硬盘实现了数据的永久存储。
+		3.1 RDB(默认启用) 指定就是数据库目录下的dump.rdb 文件
+			数据从内存保存到硬盘的频率
+			vim /etc/redis/6379.conf
+				dbfilename "dump.rdb"
+				save  900  1
+				save  300  10
+				save  60   10000
+			:wq
+
+			使用备份dump.rdb文件恢复数据
+
+备份
+192.168.4.51:6351> save
+192.168.4.51:6351> exit
+[root@host51 ~]# cp  /var/lib/redis/6379/dump.rdb /opt/
+[root@host51 ~]# scp  /opt/dump.rdb  root@192.168.4.52:/root/
+
+恢复
+[root@host52 ~]# redis-cli  -h 192.168.4.52 -p 6352  shutdown
+[root@host52 ~]# ls /var/lib/redis/6379/
+dump.rdb
+[root@host52 ~]# rm -rf  /var/lib/redis/6379/dump.rdb 
+[root@host52 ~]# 
+[root@host52 ~]# cp /root/dump.rdb  /var/lib/redis/6379/
+[root@host52 ~]# 
+[root@host52 ~]# ls /var/lib/redis/6379/
+dump.rdb
+[root@host52 ~]# /etc/init.d/redis_6379 start
+Starting Redis server...
+[root@host52 ~]# redis-cli  -h 192.168.4.52 -p 6352
+192.168.4.52:6352> keys *
+1) "y"
+2) "a"
+3) "x"
+4) "site"
+5) "name"
+6) "b"
+192.168.4.52:6352> 
+			
+	验证服务的存盘频率 配置  练习到  14:27 
+	[root@host51 ~]# redis-cli -h 192.168.4.51 -p 6351 -a 654321 shutdown 		
+	
+	[root@host51 ~]# rm -rf  /var/lib/redis/6379/dump.rdb
+
+	[root@host51 ~]# vim /etc/redis/6379.conf 
+		save 900 1
+		#save 300 10
+		save 120 10    2分钟内 至少有10变量改变 就执行存盘
+		save 60 10000
+	:wq
+	[root@host51 ~]# /etc/init.d/redis_6379 start	
+	[root@host51 ~]# redis-cli -h 192.168.4.51 -p 6351 -a 654321
+	> set  （120秒内 存储至少10个变量）
+        > exit
+
+        [root@host51 ~]# ls /var/lib/redis/6379/
+	dump.rdb
+	[root@host51 ~]#
+	
+		RDB优点与缺点？
+	
+		3.2 AOF(默认没有开启）
+Append  Only  File
+追加方式记录写操作的文件
+记录redis服务所有写操作
+不断的将新的写操作，追加到文件的末尾
+默认没有启用
+使用cat命令可以查看文件内容
+
+			启用aof文件  5分钟到 14:44
+[root@host51 ~]# redis-cli -h 192.168.4.51 -p 6351 -a 654321 
+192.168.4.51:6351> config set  appendonly yes
+OK
+192.168.4.51:6351> config rewrite
+OK
+192.168.4.51:6351> exit
+
+[root@host51 ~]# grep  "appendonly"  /etc/redis/6379.conf 
+appendonly yes
+# The name of the append only file (default: "appendonly.aof")
+appendfilename "appendonly.aof"
+[root@host51 ~]# 
+
+[root@host51 ~]# ls /var/lib/redis/6379/
+appendonly.aof  dump.rdb
+
+[root@host51 ~]#  cat  /var/lib/redis/6379/appendonly.aof
+
+
+		使用备份的aof文件恢复数据  练习10分钟到 15:12
+			备份		
+[root@host51 ~]# cp /var/lib/redis/6379/appendonly.aof  /opt/
+[root@host51 ~]# ls /opt/appendonly.aof 
+/opt/appendonly.aof
+[root@host51 ~]# 
+[root@host51 ~]# scp /opt/appendonly.aof  root@192.168.4.52:/root/
+			恢复
+[root@host52 ~]# redis-cli  -h 192.168.4.52 -p 6352 shutdown
+[root@host52 ~]# rm  -rf /var/lib/redis/6379/*
+
+[root@host52 ~]# grep -n "appendonly" /etc/redis/6379.conf
+[root@host52 ~]# sed -i '673s/no/yes/' /etc/redis/6379.conf 
+
+[root@host52 ~]# cp /root/appendonly.aof  /var/lib/redis/6379/
+[root@host52 ~]# ls /var/lib/redis/6379/
+appendonly.aof
+
+[root@host52 ~]# /etc/init.d/redis_6379 start
+Starting Redis server...
+[root@host52 ~]# redis-cli  -h 192.168.4.52 -p 6352
+192.168.4.52:6352> keys *
+
+			AOF文件记录写操作的方式
+ appendfsync  always     //时时记录，并完成磁盘同步
+ appendfsync  everysec  //每秒记录一次，并完成磁盘同步
+ appendfsync  no           //写入aof ，不执行磁盘同步
+
+
+日志文件会不断增大，何时触发日志重写？
+auto-aof-rewrite-min-size   64mb   //首次重写触发值
+auto-aof-rewrite-percentage  100   //再次重写，增长百分比
+		
+		修复AOF文件 :把文件恢复到最后一次的正确操作
+
+		
+		]# redis-check-aof  --fix  appendonly.aof 
+
+
+	  4 数据类型
+		4.1 字符类型 string   (练习+休息15分钟 到10:15)
+			set 、 setrange 、 strlen 、 append 、setbit 、bitcount
+			decr 、getrange 、incr  、incrby 、 incrbyfloat 、mget 、mset
+
+
+1T=1024G
+1G=1024M
+1M=1024K
+1K=1024bytes
+1bytes=8bit
+1bit=0或1
+
+		4.2 列表类型 list  (练习 16分钟时间 到10:49)
+			列表类型介绍：是一个字符队列，先进后出 一个变量可以存储多个值
+			相关命令：
+				lpush  lrange  lpop  llen  lindex  lset   rpush rpop
+				
+			
+		4.3 哈希类型 hash (练习+休息到 11:24 )
+			哈希类型介绍：一个key可对应多个field，一个field对应一个value
+				      是一个string类型的field和value的映射表
+			将一个对象存储为hash类型，较于每个字段都存储成string类型更能节省内存
+
+			相关命令： hset  hmset   hget  hmget   hkeys  hvals  hgetall  hdel
+				
+				
