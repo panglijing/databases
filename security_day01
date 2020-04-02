@@ -122,3 +122,37 @@ cd zabbix-3.4.4/database/mysql/
 [root@zabbix05 php]# 
 [root@zabbix05 php]# chmod  -R 777 /usr/local/nginx/html/*
 [root@zabbix05 php]# ls /usr/local/nginx/html/
+				       				3.3 安装依赖的软件包
+		]# yum -y  install php   php-mysql  php-ldap  php-xml  php-gd php-mbstring php-bcmath 
+
+				3.4 修改服务的配置文件，满足zabbix服务的运行需求
+					3.3.1 修改PHP程序
+				vim /etc/php.ini
+					672 post_max_size = 16M
+					394 max_input_time = 300
+					384 max_execution_time = 300
+					878 date.timezone = Asia/Shanghai
+				:wq
+
+				]# systemctl  restart php-fpm
+
+					3.3.2 修改nginx服务
+				]# vim /usr/local/nginx/conf/nginx.conf
+	http {
+
+        fastcgi_buffers 8 16k;    
+        fastcgi_buffer_size 32k;    
+        fastcgi_connect_timeout 300; 
+        fastcgi_send_timeout 300;
+        fastcgi_read_timeout 300;
+	:wq
+
+[root@zabbix05 php]# /usr/local/nginx/sbin/nginx  -s stop
+[root@zabbix05 php]# /usr/local/nginx/sbin/nginx  -t
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+[root@zabbix05 php]# 
+[root@zabbix05 php]# /usr/local/nginx/sbin/nginx
+
+			4 初始化配置：打开真机的浏览器，访问zabbix服务的网址
+				http://192.168.2.5/setup.php
