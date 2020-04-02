@@ -263,3 +263,16 @@ tcp        0      0 0.0.0.0:10050           0.0.0.0:*               LISTEN      
 [root@web100 ~]# zabbix_get  -s 127.0.0.1 -p 10050 -k get_sum_users
 23
 [root@web100 ~]#
+		
+		3.2 配置监控服务器 192.168.2.5  练习时间 17:15 讲新知识 
+				1  在命令测试客户端定义的命令
+[root@zabbix05 ~]# zabbix_get  -s 192.168.2.100 -p 10050 -k get_sum_users
+23
+[root@zabbix05 ~]#
+
+				2  管理登录web页面做如下配置：
+					1 创建新模板  名ATMP1
+					2 创建应用集  名users
+					3 创建监控项  名mon_sys_users   对应命令  get_sum_users
+					4 监控主机192.168.2.100 时，调用新创建的模板ATMP1
+					5 查看数据
