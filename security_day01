@@ -223,3 +223,9 @@ zabbix_get  zabbix_sender
 tcp        0      0 0.0.0.0:10050           0.0.0.0:*               LISTEN      12025/zabbix_agentd 
 [root@web100 ~]# 
 [root@web100 ~]# ps -C zabbix_agentd
+					2.2  配置监控服务器 192.168.2.5
+				管理员登录web管理页面做如下配置：
+					1 添加主机
+					2 选择监控模板
+					3 查看监控数据
+
