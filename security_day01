@@ -96,3 +96,29 @@ zabbix_get  zabbix_sender
 [root@zabbix05 zabbix-3.4.4]# ls /usr/local/sbin/
 zabbix_agentd  zabbix_proxy  zabbix_server
 [root@zabbix05 zabbix-3.4.4]# 
+
+ 						3 初始化准备
+				3.1 创建存储数据库和连接用户
+MariaDB [(none)]> create database  zabbix character set utf8;
+Query OK, 1 row affected (0.01 sec)
+
+MariaDB [(none)]> grant all on  zabbix.* to zabbix@"localhost" identified by "zabbix";
+Query OK, 0 rows affected (0.01 sec)
+
+cd zabbix-3.4.4/database/mysql/
+[root@zabbix05 mysql]# mysql -uzabbix -pzabbix  zabbix  < schema.sql 
+[root@zabbix05 mysql]# mysql -uzabbix -pzabbix  zabbix  < images.sql 
+[root@zabbix05 mysql]# mysql -uzabbix -pzabbix  zabbix  < data.sql 
+
+[root@zabbix05 mysql]# mysql -uzabbix -pzabbix  zabbix  -e 'show tables'
+
+				3.2 上线网页文件
+[root@zabbix05 zabbix-3.4.4]# ls /usr/local/nginx/html/
+50x.html  index.html  test.php
+[root@zabbix05 zabbix-3.4.4]# cd frontends/php/
+[root@zabbix05 php]# cp -a *  /usr/local/nginx/html/
+[root@zabbix05 php]# ls /usr/local/nginx/html/index.*
+/usr/local/nginx/html/index.html  /usr/local/nginx/html/index.php
+[root@zabbix05 php]# 
+[root@zabbix05 php]# chmod  -R 777 /usr/local/nginx/html/*
+[root@zabbix05 php]# ls /usr/local/nginx/html/
