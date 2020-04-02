@@ -185,3 +185,41 @@ nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
 tcp        0      0 0.0.0.0:10051           0.0.0.0:*               LISTEN      2300/zabbix_server 
 
 [root@zabbix05 php]# ps -C zabbix_server
+
+		2 、监控主机
+			2.1  配置被监控主机 192.168.2.100
+				1 运行zabbix_agentd 服务
+					安装软件 修改配置文件 启动服务 查看服务状态
+]# rpm  -q gcc  ||  yum  -y  install  gcc 
+
+]# rpm  -q pcre-devel  ||  yum  -y  install  pcre-devel
+
+tar -zxvf /var/ftp/upload/zabbix-3.4.4.tar.gz 
+cd zabbix-3.4.4/
+
+./configure --enable-agent 
+
+make install
+[root@web100 zabbix-3.4.4]#  ls /usr/local/etc/
+zabbix_agentd.conf  zabbix_agentd.conf.d
+[root@web100 zabbix-3.4.4]# ls /usr/local/sbin/
+zabbix_agentd
+[root@web100 zabbix-3.4.4]# ls /usr/local/bin
+zabbix_get  zabbix_sender
+[root@web100 zabbix-3.4.4]#
+
+[root@web100 ~]# vim /usr/local/etc/zabbix_agentd.conf
+30 LogFile=/tmp/zabbix_agentd.log
+93 Server=127.0.0.1,192.168.2.5
+134 ServerActive=192.168.2.5:10051
+
+[root@web100 ~]# useradd zabbix
+[root@web100 ~]# zabbix_agentd 
+[root@web100 ~]# 
+[root@web100 ~]# ls /tmp/zabbix_agentd.log 
+/tmp/zabbix_agentd.log
+[root@web100 ~]# 
+[root@web100 ~]# netstat  -utnlp  | grep  10050
+tcp        0      0 0.0.0.0:10050           0.0.0.0:*               LISTEN      12025/zabbix_agentd 
+[root@web100 ~]# 
+[root@web100 ~]# ps -C zabbix_agentd
