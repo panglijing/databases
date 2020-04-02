@@ -156,3 +156,32 @@ nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
 
 			4 初始化配置：打开真机的浏览器，访问zabbix服务的网址
 				http://192.168.2.5/setup.php
+			   				存储初始化信息的配置文件 
+				cat /usr/local/nginx/html/conf/zabbix.conf.php
+
+			5 登录管理页面  http://192.168.2.5
+				用户  admin
+				初始密码  zabbix
+	
+			        优化配置： 把页面的改成中文   修改密码
+
+			6 修改zabbix服务的主配置文件
+				]# vim /usr/local/etc/zabbix_server.conf		
+					85 DBHost=localhost
+					95 DBName=zabbix
+					111 DBUser=zabbix
+					119 DBPassword=zabbix
+					38 LogFile=/tmp/zabbix_server.log
+				:wq
+
+			7 启动zabbix监控服务
+[root@zabbix05 php]# useradd zabbix
+[root@zabbix05 php]# zabbix_server 
+
+[root@zabbix05 php]# ls /tmp/zabbix_server.log 
+/tmp/zabbix_server.log
+
+[root@zabbix05 php]# netstat  -utnlp  | grep 10051
+tcp        0      0 0.0.0.0:10051           0.0.0.0:*               LISTEN      2300/zabbix_server 
+
+[root@zabbix05 php]# ps -C zabbix_server
