@@ -228,4 +228,38 @@ tcp        0      0 0.0.0.0:10050           0.0.0.0:*               LISTEN      
 					1 添加主机
 					2 选择监控模板
 					3 查看监控数据
+		
+				3 自定义监控项 ：
+			作用：编译监控脚本 给监控服务器使用
+			例子 ： 监控192.168.2.100主机系统的总用户数量
 
+			3.1 配置被监控主机 192.168.2.100	
+				1 启用自定义监控项功能
+        [root@web100 ~]# vim /usr/local/etc/zabbix_agentd.conf
+	       265 Include=/usr/local/etc/zabbix_agentd.conf.d/*.conf
+	       280 UnsafeUserParameters=1
+	:wq
+				2 创建监控命令
+        [root@web100 ~]# vim /usr/local/etc/zabbix_agentd.conf.d/x.conf
+			 UserParameter=get_sum_users,wc -l /etc/passwd | awk '{print $1}'
+	:wq
+
+				3 重启zabbix_agentd服务
+	
+[root@web100 ~]# killall -9 zabbix_agentd
+[root@web100 ~]# killall -9 zabbix_agentd
+zabbix_agentd: no process found
+[root@web100 ~]# 
+[root@web100 ~]# zabbix_agentd 
+[root@web100 ~]# netstat -utnlp | grep 10050
+tcp        0      0 0.0.0.0:10050           0.0.0.0:*               LISTEN      12722/zabbix_agentd 
+[root@web100 ~]# 
+				4 测试创建就的监控命令
+
+[root@web100 ~]# zabbix_get  -s 127.0.0.1 -p 10050 -k get_sum_users
+22
+[root@web100 ~]# useradd plja
+[root@web100 ~]# 
+[root@web100 ~]# zabbix_get  -s 127.0.0.1 -p 10050 -k get_sum_users
+23
+[root@web100 ~]#
