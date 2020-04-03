@@ -260,4 +260,13 @@ UserParameter=nginx_status[*],/usr/local/bin/nginx_status.sh $1
 1
 [root@localhost ~]# zabbix_get -s 127.0.0.1 -p 10050 -k nginx_status[Waiting]
 0
-[root@localhost ~]#	
+[root@localhost ~]#
+			第三步：在监控服务器web页面做如下操作：
+			1 创建新模板  ATMP2
+			2 创建新应用集 status
+			3 创建监控项  名  	监控命令
+		 		     sum_link	  nginx_status[lishi]
+				     now_link	  nginx_status[shishi]
+				     waiting_link  nginx_status[Waiting]
+			4 监控200主机，调用新创建的模板 ATMP2
+			5 查看监控数据
