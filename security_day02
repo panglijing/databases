@@ -205,7 +205,7 @@ server accepts handled requests
 Reading: 0 Writing: 1 Waiting: 0 
 [root@localhost nginx-1.12.2]# 
 				 3.1 监控nginx服务的运行状态
-		        在200主机编辑监控脚本 nginx_status.sh
+		        第一步 ： 在200主机编辑监控脚本 nginx_status.sh
 			]# vim /usr/local/bin/nginx_status.sh
 
 			#!/bin/bash	
