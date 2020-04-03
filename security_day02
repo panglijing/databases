@@ -229,3 +229,35 @@ Reading: 0 Writing: 1 Waiting: 0
 [root@localhost ~]# /usr/local/bin/nginx_status.sh Waiting
 0
 [root@localhost ~]#
+
+			第二步： 在200主机把shell脚本定义为zabbix_agentd服务可以使用命令
+[root@localhost ~]# vim /usr/local/etc/zabbix_agentd.conf.d/x.conf				 	
+UserParameter=nginx_status[*],/usr/local/bin/nginx_status.sh $1
+:wq
+
+[root@localhost ~]# killall -9 zabbix_agentd
+-bash: killall: 未找到命令
+[root@localhost ~]# 
+[root@localhost ~]# yum -y  install psmisc	
+		
+[root@localhost ~]# killall -9 zabbix_agentd
+[root@localhost ~]# killall -9 zabbix_agentd
+zabbix_agentd: no process found
+[root@localhost ~]# 
+[root@localhost ~]# zabbix_agentd 
+[root@localhost ~]# 
+[root@localhost ~]# netstat  -utnlp | grep 10050
+tcp        0      0 0.0.0.0:10050           0.0.0.0:*               LISTEN      12550/zabbix_agentd 
+[root@localhost ~]#
+
+[root@localhost ~]# cat /usr/local/etc/zabbix_agentd.conf.d/x.conf
+UserParameter=nginx_status[*],/usr/local/bin/nginx_status.sh $1
+[root@localhost ~]# 
+[root@localhost ~]# 
+[root@localhost ~]# zabbix_get -s 127.0.0.1 -p 10050 -k nginx_status[lishi]
+81
+[root@localhost ~]# zabbix_get -s 127.0.0.1 -p 10050 -k nginx_status[shishi]
+1
+[root@localhost ~]# zabbix_get -s 127.0.0.1 -p 10050 -k nginx_status[Waiting]
+0
+[root@localhost ~]#	
