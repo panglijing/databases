@@ -81,3 +81,85 @@ gpgcheck=0
 			3 具体操作
 			4 验证配置： 创建一台新的主机，配置IP地址192.168.2.200 运行httpd网站服务
 			5 在web管理页面，查看监控的主机
+                 3.2  主被监控：zabbix服务有2种工作模式：主动模式   被动模式（默认）	
+		     配置主动监控模式：客户端主动连接监控服务器
+				3.2.1 配置被监控的主机 192.168.2.201
+					1 安装源码的zabbix软件  5分钟时间到14:29 
+]# yum -y install gcc pcre-devel
+]# tar -zxvf /var/ftp/upload/zabbix-3.4.4.tar.gz 
+]# cd zabbix-3.4.4/
+]# ./configure  --enable-agent
+]# make install
+[root@web201 zabbix-3.4.4]# ls /usr/local/etc/
+zabbix_agentd.conf  zabbix_agentd.conf.d
+[root@web201 zabbix-3.4.4]# 
+[root@web201 zabbix-3.4.4]# ls /usr/local/sbin/
+zabbix_agentd
+[root@web201 zabbix-3.4.4]# 
+[root@web201 zabbix-3.4.4]# ls /usr/local/bin/
+zabbix_get  zabbix_sender
+[root@web201 zabbix-3.4.4]#
+					时间7分钟 到14:45
+					2 修改配置文件（设置zabbix_agentd服务工作模式为主动模式）
+[root@web201 zabbix-3.4.4]# vim /usr/local/etc/zabbix_agentd.conf
+ 145 Hostname=web201
+ 93 #Server=127.0.0.1
+ 134 ServerActive=192.168.2.5:10051
+ 118 StartAgents=0
+ 183 RefreshActiveChecks=120
+ 30 LogFile=/tmp/zabbix_agentd.log
+:wq					3 启动服务
+				
+[root@web201 zabbix-3.4.4]# useradd zabbix
+[root@web201 zabbix-3.4.4]# zabbix_agentd 
+[root@web201 zabbix-3.4.4]# ls /tmp/zabbix_agentd.log 
+/tmp/zabbix_agentd.log
+
+					4 查看进程（只有进程没有端口）
+[root@web201 zabbix-3.4.4]# netstat -utnlp  | grep 10050
+[root@web201 zabbix-3.4.4]# ps -C zabbix_agentd
+   PID TTY          TIME CMD
+  9115 ?        00:00:00 zabbix_agentd
+  9116 ?        00:00:00 zabbix_agentd
+  9117 ?        00:00:00 zabbix_agentd
+[root@web201 zabbix-3.4.4]# 
+					
+
+				3.2.2 配置监控服务器192.168.2.5  练习20分钟到 15:30 
+					登录web页面做如下配置：
+						1 克隆模板（创建主动监控模式的模板）
+						2 添加主机201 （监控201）
+						3 选择模板（使用主动模式的模板）
+						4 查看数据
+				
+				
+
+		3.3 拓扑图和聚合图形
+			3.1 在web页面绘制拓扑图，可以快速了解服务器架构  8分钟到 15:50
+			3.2 聚合图形:在1张web页面 ，显示多个监控图片     16:15 讲新知识 
+ 
+
+	三、 监控案例  192.168.2.200
+		目的：调用自己编写的shell脚本，监控数据
+		环境准备
+			运行zabbix_agentd服务 并启用的自定义监控项功能
+    8  yum -y install gcc pcre-devel
+    9  tar -zxvf /var/ftp/upload/zabbix-3.4.4.tar.gz 
+   10  cd zabbix-3.4.4/
+   11  ./configure  --enable-agent
+   12  make install
+[root@localhost zabbix-3.4.4]# vim /usr/local/etc/zabbix_agentd.conf
+
+93 Server=127.0.0.1,192.168.2.5
+134 ServerActive=192.168.2.5:10051
+265 Include=/usr/local/etc/zabbix_agentd.conf.d/*.conf
+280 UnsafeUserParameters=1
+：wq
+[root@localhost zabbix-3.4.4]# useradd zabbix
+[root@localhost zabbix-3.4.4]# zabbix_agentd 
+[root@localhost zabbix-3.4.4]# setenforce 0
+[root@localhost zabbix-3.4.4]# netstat -utnlp  | grep 10050
+tcp        0      0 0.0.0.0:10050           0.0.0.0:*               LISTEN      9129/zabbix_agentd  
+[root@localhost zabbix-3.4.4]# ls /tmp/zabbix_agentd.log 
+/tmp/zabbix_agentd.log
+[root@localhost zabbix-3.4.4]#	
