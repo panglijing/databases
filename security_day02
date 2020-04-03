@@ -163,3 +163,44 @@ tcp        0      0 0.0.0.0:10050           0.0.0.0:*               LISTEN      
 [root@localhost zabbix-3.4.4]# ls /tmp/zabbix_agentd.log 
 /tmp/zabbix_agentd.log
 [root@localhost zabbix-3.4.4]#	
+					环境准备2  安装源码nginx软件并加载状态模块	
+
+[root@localhost ~]# rpm -q gcc pcre-devel zlib-devel
+gcc-4.8.5-28.el7.x86_64
+pcre-devel-8.32-17.el7.x86_64
+未安装软件包 zlib-devel 
+[root@localhost ~]# yum -y  install zlib-devel	
+[root@localhost ~]# tar -zxvf /var/ftp/upload/nginx-1.12.2.tar.gz
+[root@localhost ~]# cd nginx-1.12.2/
+[root@localhost nginx-1.12.2]# ./configure --help | grep -i status
+  --with-http_stub_status_module     enable ngx_http_stub_status_module
+[root@localhost nginx-1.12.2]# 
+[root@localhost nginx-1.12.2]# ./configure --with-http_stub_status_module
+[root@localhost nginx-1.12.2]# make && make install 
+[root@localhost nginx-1.12.2]# ls /usr/local/nginx/
+conf  html  logs  sbin
+[root@localhost nginx-1.12.2]# vim /usr/local/nginx/conf/nginx.conf
+    server {
+        location /status {
+            stub_status on; 
+        } 
+:wq
+
+[root@localhost nginx-1.12.2]# /usr/local/nginx/sbin/nginx  -t
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+[root@localhost nginx-1.12.2]# 
+[root@localhost nginx-1.12.2]# systemctl  stop httpd
+[root@localhost nginx-1.12.2]# systemctl  disable httpd
+[root@localhost nginx-1.12.2]# 
+[root@localhost nginx-1.12.2]# /usr/local/nginx/sbin/nginx
+[root@localhost nginx-1.12.2]# netstat  -utnlp  | grep 80
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      11841/nginx: master		   
+ [root@localhost nginx-1.12.2]# setenforce  0
+[root@localhost nginx-1.12.2]# 
+[root@localhost nginx-1.12.2]# curl http://localhost/status
+Active connections: 1 
+server accepts handled requests
+ 2 2 1 
+Reading: 0 Writing: 1 Waiting: 0 
+[root@localhost nginx-1.12.2]# 
