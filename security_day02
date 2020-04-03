@@ -204,3 +204,28 @@ server accepts handled requests
  2 2 1 
 Reading: 0 Writing: 1 Waiting: 0 
 [root@localhost nginx-1.12.2]# 
+				 3.1 监控nginx服务的运行状态
+		        在200主机编辑监控脚本 nginx_status.sh
+			]# vim /usr/local/bin/nginx_status.sh
+
+			#!/bin/bash	
+                       	case $1 in
+			 "shishi") 
+		              curl -s  http://localhost/status | awk 'NR==1{print $3}' ;;
+
+			 "lishi")
+			      curl -s  http://localhost/status | awk 'NR==3{print $1}' ;;
+			 "Waiting")
+			      curl -s  http://localhost/status | awk 'NR==4{print $6}' ;;
+			esac
+			:wq
+
+			]# chmod  +x /usr/local/bin/nginx_status.sh
+		
+[root@localhost ~]# /usr/local/bin/nginx_status.sh shishi
+1
+[root@localhost ~]# /usr/local/bin/nginx_status.sh lishi
+60
+[root@localhost ~]# /usr/local/bin/nginx_status.sh Waiting
+0
+[root@localhost ~]#
