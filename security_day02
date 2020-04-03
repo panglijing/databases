@@ -20,3 +20,48 @@
 			3 创建表达式
 			4 保存
 			5 测试触发器
+                1.2 创建动作 ：
+			准备邮件服务器和邮箱账号
+			[root@zabbix05 ~]# rpm  -q postfix || yum  -y  install postfix 
+			[root@zabbix05 ~]# systemctl  status postfix
+			[root@zabbix05 ~]# systemctl  start postfix
+			[root@zabbix05 ~]# systemctl  enable postfix
+			[root@zabbix05 ~]# netstat  -utnlp  | grep  25
+tcp        0      0 127.0.0.1:25            0.0.0.0:*               LISTEN      1324/master         
+tcp6       0      0 ::1:25                  :::*                    LISTEN      1324/master         
+[root@zabbix05 ~]#
+			[root@zabbix05 ~]# echo "127.0.0.1  zabbix05" >> /etc/hosts
+			
+			[root@zabbix05 ~]# yum  -y  install mailx
+[root@zabbix05 ~]# mail  -s "first mail"  zabbix  < /etc/yum.repos.d/plj.repo
+[root@zabbix05 ~]# mail  -s "first mail"  zabbix  < /etc/yum.repos.d/plj.repo 
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# su - zabbix
+[zabbix@zabbix05 ~]$ mail
+Heirloom Mail version 12.5 7/5/10.  Type ? for help.
+"/var/spool/mail/zabbix": 1 message 1 new
+>N  1 root                  Fri Apr  3 17:33  22/666   "first mail"
+& 1
+Message  1:
+From root@zabbix05.localdomain  Fri Apr  3 17:33:53 2020
+Return-Path: <root@zabbix05.localdomain>
+X-Original-To: zabbix
+Delivered-To: zabbix@zabbix05.localdomain
+Date: Fri, 03 Apr 2020 17:33:52 +0800
+To: zabbix@zabbix05.localdomain
+Subject: first mail
+User-Agent: Heirloom mailx 12.5 7/5/10
+Content-Type: text/plain; charset=us-ascii
+From: root@zabbix05.localdomain (root)
+Status: R
+
+[soft]
+name="centos7"
+baseurl=file:///mnt
+enabled=1
+gpgcheck=0
+
+& exit
+[zabbix@zabbix05 ~]$ exit
+登出
+[root@zabbix05 ~]#
