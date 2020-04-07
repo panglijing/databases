@@ -329,3 +329,8 @@ tcp        0      0 0.0.0.0:10050           0.0.0.0:*               LISTEN      
 								time_wait	net_status[timewait]
 								ESTAB		net_status[estab]
 					3 查看监控数据 
+					
+		3.3 思考题： 监控路由器 和 交换机 接口流量
+			     监控MySQL数据服务器sql命令个数
+			     监控redis服务的状态
+			     监控redis服务器物理内存的空闲空间
