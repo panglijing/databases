@@ -211,4 +211,118 @@ MYUSER MYSER=SHARECMD , STORAGE , DBACMD
 john MYSER=WEBCMD , SHARECMD
 
 :wq! 
+		三、ssh访问控制
+		3.1 基本防护 （修改服务的配置项 主配置文件 /etc/ssh/sshd_config）
+]# vim /etc/ssh/sshd_config    练习5分钟到 16:45 
+Port 2211
+#AddressFamily any
+ListenAddress 192.168.2.200
+:wq
 
+[root@web200 ~]# systemctl restart  sshd
+[root@web200 ~]# netstat -utnlp  | grep  sshd
+
+Xshell:\> ssh  root@192.168.2.200   2211 
+
+[root@zabbix05 ~]# ssh -p 2211  root@192.168.2.200 
+
+
+		3.2 黑白名单 (练习 + 休息到 17:25 )
+			白名单：只允许客户端使用白名单列表里的用户访问
+				AllowUsers  用户列表
+				AllowGroups 用户组列表
+
+ [root@web200 ~]# vim /etc/ssh/sshd_config
+  AllowUsers john root@192.168.2.201  (写在文件的末尾)				
+ :wq
+	
+ [root@web200 ~]# systemctl  restart sshd
+	
+		黑名单：仅不允许使用黑名单列表里的用户连接
+				DenyUsers  用户列表
+				DenyGroups 用户组列表
+
+ [root@web200 ~]# vim /etc/ssh/sshd_config
+  #AllowUsers john root@192.168.2.201  	
+  DenyUsers john lisi 	(写在文件的末尾)		
+ :wq
+	
+ [root@web200 ~]# systemctl  restart sshd
+ 
+
+			3.3 仅允许密钥对认证登录 
+				连接的验证方式:口令 和  密钥对 （默认2种都开启）
+				对应的配置项 
+				 65 PasswordAuthentication yes  口令
+
+				 43 #PubkeyAuthentication yes   密钥对
+				 47 AuthorizedKeysFile      .ssh/authorized_keys  存放公钥的文件名
+
+
+			密钥对由2部分组成 : 公钥文件（加密 相当锁头）  和 私钥文件（解密相当钥匙）
+
+
+			ssh服务密钥对验证登录的工作过程？
+
+
+
+[root@zabbix05 ~]# ls /root/.ssh/
+known_hosts
+[root@zabbix05 ~]# ssh-keygen 
+Generating public/private rsa key pair.
+Enter file in which to save the key (/root/.ssh/id_rsa): 
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /root/.ssh/id_rsa.
+Your public key has been saved in /root/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:AjjiojxQUPD8JUBH9d+pMw4A7jGvR3FHN56YQrjki40 root@zabbix05
+The key's randomart image is:
++---[RSA 2048]----+
+|o++.o...         |
+| + +  o.. . o    |
+|. * +o.o.. = o   |
+|.o + =+ o.+.o.   |
+|o.  =+o+So. o    |
+|=  .E++o   .     |
+|.o  ... . +      |
+|  .  ..  o o     |
+|    ..    .      |
++----[SHA256]-----+
+[root@zabbix05 ~]# ls /root/.ssh/
+id_rsa  id_rsa.pub  known_hosts
+[root@zabbix05 ~]# cat /root/.ssh/known_hosts 
+[192.168.2.200]:2211 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPNmb4pXa6uMWzKg2R1WkH1KITBoQ9V2OKo95S56RZYLYAf5PI9nJiGa0PD7o66mAm9bxvxpr4eKbz4h4WF/B+I=
+[root@zabbix05 ~]#
+
+[root@zabbix05 ~]# ssh-copy-id   -p 2211 root@192.168.2.200
+
+[root@zabbix05 ~]# ssh -p 2211 root@192.168.2.200
+Last login: Wed Apr  8 01:44:21 2020 from 192.168.2.1
+[root@web200 ~]# exit
+登出
+Connection to 192.168.2.200 closed.
+[root@zabbix05 ~]# ssh -p 2211 john@192.168.2.200
+john@192.168.2.200's password: 
+
+[root@web200 ~]# vim +65 /etc/ssh/sshd_config 
+
+PasswordAuthentication no
+:wq
+
+[root@web200 ~]# systemctl  restart sshd
+
+[root@zabbix05 ~]# ssh -p 2211 john@192.168.2.200
+Permission denied (publickey,gssapi-keyex,gssapi-with-mic).
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# ssh -p 2211 root@192.168.2.200
+Last login: Wed Apr  8 01:47:00 2020 from 192.168.2.5
+[root@web200 ~]#
+
+	四、SElinux 安全防护 192.168.2.5 主机启用selinux
+		[root@zabbix05 ~]# vim /etc/sysconfig/selinux
+			SELINUX=enforcing
+		:wq
+		
+	    	[root@zabbix05 ~]# touch /.autorelabel
+		[root@zabbix05 ~]# reboot
