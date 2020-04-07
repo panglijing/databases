@@ -320,3 +320,12 @@ tcp        0      0 0.0.0.0:10050           0.0.0.0:*               LISTEN      
 [root@localhost ~]# zabbix_get -s 127.0.0.1 -p 10050 -k net_status[estab]
 3
 [root@localhost ~]#
+				2 配置监控服务器192.168.2.5
+					登录WEB管理页面做如下配置：
+					1 在ATMP2模板里添加新应用集 TCP_STATUS
+					2 创建新的监控项
+								名    		命令
+								close_wait	net_status[closewait]
+								time_wait	net_status[timewait]
+								ESTAB		net_status[estab]
+					3 查看监控数据 
