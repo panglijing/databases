@@ -270,3 +270,53 @@ UserParameter=nginx_status[*],/usr/local/bin/nginx_status.sh $1
 				     waiting_link  nginx_status[Waiting]
 			4 监控200主机，调用新创建的模板 ATMP2
 			5 查看监控数据
+			
+			3.2 监控200服务器的TCP连接状态
+			作用：通过查看TCP连接状态信息可以，反应服务器的运行状况与性能
+
+				客户端与服务器建立连接时的连接方式: TCP 和 UDP
+				
+				TCP标记位：SYN   ACK  FIN
+
+				TCP连接状态有哪些？ 
+
+			配置步骤：
+				1 配置客户端200主机
+					编写监控TCP连接状态的shell脚本
+
+]# vim /usr/local/bin/net_status.sh
+#!/bin/bash
+case "$1" in
+"estab")
+	ss -antp | awk  'BEGIN{z=0}/^ESTAB/{z++}END{print z}';;
+"timewait")
+	ss -antp | awk  'BEGIN{y=0}/^TIME-WAIT/{y++}END{print y}';;
+"closewait")
+	ss -antp | awk  'BEGIN{x=0}/^CLOSE_WAIT/{x++}END{print x}';;
+esac
+:wq
+
+]# chmod +x  /usr/local/bin/net_status.sh
+					把shell脚本定义为监控命令
+
+[root@localhost ~]# vim /usr/local/etc/zabbix_agentd.conf.d/x.conf 
+UserParameter=nginx_status[*],/usr/local/bin/nginx_status.sh $1
+UserParameter=net_status[*],/usr/local/bin/net_status.sh $1
+[root@localhost ~]# 
+
+[root@localhost ~]# killall -9 zabbix_agentd
+[root@localhost ~]# killall -9 zabbix_agentd
+zabbix_agentd: no process found
+[root@localhost ~]# 
+[root@localhost ~]# zabbix_agentd 
+[root@localhost ~]# netstat  -utnlp  | grep 10050
+tcp        0      0 0.0.0.0:10050           0.0.0.0:*               LISTEN      3539/zabbix_agentd  
+[root@localhost ~]# 
+					测试命令
+[root@localhost ~]# zabbix_get -s 127.0.0.1 -p 10050 -k net_status[closewait]
+0
+[root@localhost ~]# zabbix_get -s 127.0.0.1 -p 10050 -k net_status[timewait]
+37
+[root@localhost ~]# zabbix_get -s 127.0.0.1 -p 10050 -k net_status[estab]
+3
+[root@localhost ~]#
