@@ -1,0 +1,99 @@
++++++++++++++监控与安全_day03_学习任务
+	一、Linux基本防护
+
+[root@localhost ~]# useradd  bob
+]# echo "123456" |# echo  "123456" | passwd --stdin bob
+[root@localhost ~]# chage -d 0 bob
+[root@localhost ~]# chage -E 2020/12/31 bob
+[root@localhost ~]# chage -l bob
+最近一次密码修改时间					：密码必须更改
+密码过期时间					：密码必须更改
+密码失效时间					：密码必须更改
+帐户过期时间						：12月 31, 2020
+两次改变密码之间相距的最小天数		：0
+两次改变密码之间相距的最大天数		：99999
+在密码过期之前警告的天数	：7
+[root@localhost ~]# 
+
+root@localhost ~]# useradd bob2
+[root@localhost ~]# echo "123456" | passwd --stdin bob2
+更改用户 bob2 的密码 。
+passwd：所有的身份验证令牌已经成功更新。
+[root@localhost ~]# 
+[root@localhost ~]# passwd  -S bob2
+bob2 PS 2020-04-07 0 99999 7 -1 (密码已设置，使用 SHA512 算法。)
+[root@localhost ~]# 
+[root@localhost ~]# passwd  -l bob2
+锁定用户 bob2 的密码 。
+passwd: 操作成功
+[root@localhost ~]# passwd  -S bob2
+bob2 LK 2020-04-07 0 99999 7 -1 (密码已被锁定。)
+[root@localhost ~]# passwd  -u bob2
+解锁用户 bob2 的密码。
+passwd: 操作成功
+[root@localhost ~]# passwd  -S bob2
+bob2 PS 2020-04-07 0 99999 7 -1 (密码已设置，使用 SHA512 算法。)
+[root@localhost ~]# 			
+
+[root@localhost ~]# passwd -l bob2
+锁定用户 bob2 的密码 。
+passwd: 操作成功
+[root@localhost ~]# grep bob2 /etc/shadow
+bob2:!!$6$18zJ7QKh$QlWchH8ZN0KGgbML.fgm9MEndg5weesnnMIMFeEck89eRXR/NQdh2zMg/yy6FmvG7.pWN5xS6LPgBLd0.IHF4/:18359:0:99999:7:::
+[root@localhost ~]# 
+[root@localhost ~]# passwd  -S bob2
+bob2 LK 2020-04-07 0 99999 7 -1 (密码已被锁定。)
+[root@localhost ~]# 
+
+]# grep -v "#" /etc/login.defs  
+
+
+[root@localhost ~]# vim /etc/issue
+[root@localhost ~]# cat /etc/issue.net 
+\S
+Kernel \r on an \m
+[root@localhost ~]# vim /etc/issue.net 
+[root@localhost ~]# 
+[root@localhost ~]# cat /etc/issue
+window  server 2000
+[root@localhost ~]#
+
+
+RHEL7 systemctl  start|stop|restart httpd
+RHEL6 service   httpd  start|stop|restart
+
+RHEL7  systemctl enable|disable httpd
+RHEL6  chkconfig httpd on|off
+
+
+[root@localhost ~]# lsattr  /etc/hosts
+---------------- /etc/hosts
+[root@localhost ~]# chattr  +i /etc/hosts
+[root@localhost ~]# lsattr  /etc/hosts
+----i----------- /etc/hosts
+[root@localhost ~]# 
+
+[root@localhost ~]# rm -rf /etc/hosts
+rm: 无法删除"/etc/hosts": 不允许的操作
+[root@localhost ~]# 
+[root@localhost ~]# mv /etc/hosts /tmp/
+mv: 无法将"/etc/hosts" 移动至"/tmp/hosts": 不允许的操作
+[root@localhost ~]# 
+
+[root@localhost ~]# lsattr  /etc/passwd
+---------------- /etc/passwd
+[root@localhost ~]# useradd bob6
+[root@localhost ~]# grep bob6 /etc/passwd
+bob6:x:1003:1003::/home/bob6:/bin/bash
+[root@localhost ~]# 
+[root@localhost ~]# chattr +a /etc/passwd
+[root@localhost ~]# grep bob7 /etc/passwd
+[root@localhost ~]# useradd bob7
+useradd：无法打开 /etc/passwd
+[root@localhost ~]# echo  "xxxx" >> /etc/passwd
+[root@localhost ~]# tail -1 /etc/passwd
+xxxx
+[root@localhost ~]# chattr -a /etc/passwd
+[root@localhost ~]# useradd bob7
+[root@localhost ~]# sed -i '/^xxx/d' /etc/passwd
+[root@localhost ~]#
