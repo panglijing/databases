@@ -97,3 +97,84 @@ xxxx
 [root@localhost ~]# useradd bob7
 [root@localhost ~]# sed -i '/^xxx/d' /etc/passwd
 [root@localhost ~]#
+
+			二、用户切换与提权   
+		2.1 用户切换 su 
+		    命令格式：
+			
+[john@localhost ~]$ su - root -c 'netstat  -utnlp  | grep zabbix_agentd'
+密码：
+tcp        0      0 0.0.0.0:10050           0.0.0.0:*               LISTEN      3539/zabbix_agentd  
+[john@localhost ~]$ 
+
+]# cat /var/log/secure 记录su 切换信息
+
+		2.2 用户提权 sudo（重点）
+			定义：系统的管理员root用户，给系统的普通用户，配置可以使用root用户命令的权限。
+			主配置文件  /etc/sudoers
+			打开文件的方式： visudo  或 vim  /etc/sudoers
+
+			提权格式：
+			普通用户名	服务器主机名列表=提权命令列表 （命令要写绝对路径）
+			%用户组名	服务器主机名列表=提权命令列表
+
+			普通用户查看可用执行的提权命令 sudo  -l  (首次查看需要输入自己登陆系统的密码)
+			普通用户执行提权命令 sudo 提权命令
+
+			例子： 给系统普通用户john ，使其可以管理mairadb数据库服务器
+			useradd john
+			echo 123456  | passwd --stdin  john
+
+[root@localhost ~]# which  rpm
+/usr/bin/rpm
+[root@localhost ~]# which  yum
+/usr/bin/yum
+[root@localhost ~]# which  systemctl
+/usr/bin/systemctl
+[root@localhost ~]# 
+[root@localhost ~]# which  vim
+/usr/bin/vim
+[root@localhost ~]#
+
+			]# vim +92 /etc/sudoers
+                        john	localhost,web200=/usr/bin/rpm , /usr/bin/yum , /usr/bin/systemctl  *  mariadb , /usr/bin/vim /etc/my.cnf
+
+:wq
+
+john@web200 ~]$ sudo -l
+[sudo] john 的密码：
+匹配 %2$s 上 %1$s 的默认条目：
+    !visiblepw, always_set_home, match_group_by_gid, env_reset, env_keep="COLORS DISPLAY
+    HOSTNAME HISTSIZE KDEDIR LS_COLORS", env_keep+="MAIL PS1 PS2 QTDIR USERNAME LANG
+    LC_ADDRESS LC_CTYPE", env_keep+="LC_COLLATE LC_IDENTIFICATION LC_MEASUREMENT LC_MESSAGES",
+    env_keep+="LC_MONETARY LC_NAME LC_NUMERIC LC_PAPER LC_TELEPHONE", env_keep+="LC_TIME
+    LC_ALL LANGUAGE LINGUAS _XKB_CHARSET XAUTHORITY",
+    secure_path=/sbin\:/bin\:/usr/sbin\:/usr/bin
+
+用户 john 可以在 web200 上运行以下命令：
+    (root) /usr/bin/rpm, /usr/bin/yum, /usr/bin/systemctl * mariadb, /usr/bin/vim /etc/my.cnf
+[john@web200 ~]$ 
+[john@web200 ~]$ sudo rpm -q mariadb-server
+未安装软件包 mariadb-server 
+[john@web200 ~]$ sudo rpm -q mariadb
+未安装软件包 mariadb 
+[john@web200 ~]$ 
+[john@web200 ~]$ sudo yum -y install mariadb-server mariadb
+
+[john@web200 ~]$ sudo systemctl  start mariadb
+[john@web200 ~]$ ls /var/lib/mysql/
+aria_log.00000001  ibdata1      ib_logfile1  mysql.sock          test
+aria_log_control   ib_logfile0  mysql        performance_schema
+[john@web200 ~]$ 
+[john@web200 ~]$ sudo vim /etc/my.cnf
+[mysqld]
+log_bin
+server_id=1
+:wq
+[john@web200 ~]$ sudo systemctl  restart mariadb
+[john@web200 ~]$ 
+[john@web200 ~]$ ls /var/lib/mysql/
+aria_log.00000001  ib_logfile0         mariadb-bin.index  performance_schema
+aria_log_control   ib_logfile1         mysql              test
+ibdata1            mariadb-bin.000001  mysql.sock
+[john@web200 ~]$
