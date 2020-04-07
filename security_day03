@@ -178,3 +178,37 @@ aria_log.00000001  ib_logfile0         mariadb-bin.index  performance_schema
 aria_log_control   ib_logfile1         mysql              test
 ibdata1            mariadb-bin.000001  mysql.sock
 [john@web200 ~]$
+
+		启用日志 记录普通用户执行的提权命令
+
+]# vim /etc/sudoers  (写在文件的末尾)
+Defaults  logfile="/var/log/sudo"
+:wq
+
+
+[root@web200 ~]# vim /var/log/sudo.log   （执行过提权命令会自动创建文件并记录执行的命令）
+
+
+sudo别名设置：（别名名称必须用大写字母）
+	定义用户别名 User_Alias  别名名称=用户列表
+	定义主机别名 Host_Alias  别名名称=主机名列表
+	定义命令别名 Cmnd_Alias  别名名称=命令列表
+[root@web200 ~]# vim /etc/sudoers
+
+Cmnd_Alias SHARECMD=/usr/bin/rpm , /usr/bin/yum
+
+Cmnd_Alias DBACMD=/usr/bin/systemctl  *  mariadb , /usr/bin/vim /etc/my.cnf
+
+Cmnd_Alias WEBCMD=/usr/bin/systemctl  *  httpd , /usr/bin/vim /etc/httpd/conf/httpd.conf
+
+Cmnd_Alias STORAGE = /sbin/fdisk, /sbin/sfdisk, /sbin/parted, /sbin/partprobe, /bi    n/mount, /bin/umount
+
+User_Alias MYUSER= zhangsan ,lisi
+
+Host_Alias MYSER=localhost,web200
+
+MYUSER MYSER=SHARECMD , STORAGE , DBACMD
+john MYSER=WEBCMD , SHARECMD
+
+:wq! 
+
