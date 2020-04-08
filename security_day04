@@ -1,0 +1,155 @@
++++++++++++++监控与安全_day04_学习任务 （安装带图形的虚拟机 192.168.2.66)
+	一 加密与解密
+		1.1 相关概念
+
+[root@web100 upload]# md5sum  zabbix-3.4.4.tar.gz 
+3211dd373fa3424be3ab3a0ee9c48816  zabbix-3.4.4.tar.gz
+[root@web100 upload]# 	
+
+
+[root@web100 ~]# ls /root/
+anaconda-ks.cfg  a.txt  hosts  passwd  zabbix-3.4.4
+[root@web100 ~]# 
+[root@web100 ~]# 
+[root@web100 ~]# ls /root/ | md5sum 
+e1b421ff65ba1aff8ea6e8ad8ac3bb30  -
+[root@web100 ~]# 
+[root@web100 ~]# touch  /root/b.txt
+[root@web100 ~]# 
+[root@web100 ~]# ls /root/ | md5sum 
+d8772640f4da4a4f602fe0e66767bb48  -
+[root@web100 ~]# 
+[root@web100 ~]# rm -rf /root/b.txt 
+[root@web100 ~]# ls /root/ | md5sum 
+e1b421ff65ba1aff8ea6e8ad8ac3bb30  -
+[root@web100 ~]# 
+[root@web100 ~]# md5sum  /etc/passwd
+5061d5445fcde8cc3c59cb9919fc2753  /etc/passwd
+[root@web100 ~]# wc -l /etc/passwd
+26 /etc/passwd
+[root@web100 ~]# useradd  yaya100 
+[root@web100 ~]# wc -l /etc/passwd
+27 /etc/passwd
+[root@web100 ~]# md5sum  /etc/passwd
+1463ff68ddd649f53de7455a1d79630a  /etc/passwd
+[root@web100 ~]# 
+
+	1.2 gpg介绍？
+[root@localhost ~]# which gpg
+/usr/bin/gpg
+[root@localhost ~]# rpm -qf /usr/bin/gpg
+gnupg2-2.0.22-4.el7.x86_64
+[root@localhost ~]# 
+[root@localhost ~]# gpg --version
+gpg (GnuPG) 2.0.22
+libgcrypt 1.5.3
+Copyright (C) 2013 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Home: ~/.gnupg
+Supported algorithms:
+Pubkey: RSA, ?, ?, ELG, DSA
+Cipher: IDEA, 3DES, CAST5, BLOWFISH, AES, AES192, AES256, TWOFISH,
+        CAMELLIA128, CAMELLIA192, CAMELLIA256
+Hash: MD5, SHA1, RIPEMD160, SHA256, SHA384, SHA512, SHA224
+Compression: Uncompressed, ZIP, ZLIB, BZIP2
+[root@localhost ~]# 
+
+]# gpg --help
+]# man gpg
+
+
+[root@localhost ~]# useradd userA
+[root@localhost ~]# useradd userB
+[root@localhost ~]# echo 123456 | passwd --stdin userA
+Changing password for user userA.
+passwd: all authentication tokens updated successfully.
+[root@localhost ~]# 
+[root@localhost ~]# echo 123456 | passwd --stdin userB
+Changing password for user userB.
+passwd: all authentication tokens updated successfully.
+[root@localhost ~]#
+
+[root@localhost ~]#ssh -X  userA@localhost
+[root@localhost ~]#ssh -X  userB@localhost
+
+	1.3 gpg对称加密与解密 (加密和解密使用相同的密钥)
+		userA  ------ >  userB
+userA用户
+    3  vim test.txt
+    6  gpg -c test.txt   加密文件 会提示输密码
+   12  mv test.txt.gpg  /tmp/  共享加密文件
+   13  ls /tmp/test.txt.gpg 
+		
+userB用户
+  [userB@localhost ~]$ gpg -d /tmp/test.txt.gpg  > a.txt 解密 会提示输密码
+
+
+	
+	
+
+	1.4 gpg非对称加密与解密
+		非对称加/解密工作过程？
+		公钥加密（锁头）  私钥解密（钥匙）
+
+[root@localhost ~]# ls /dev/random 
+/dev/random
+[root@localhost ~]# ls /dev/urandom 
+/dev/urandom
+
+[root@localhost ~]# mv /dev/random /dev/randomold
+[root@localhost ~]# ln -s /dev/urandom /dev/random
+
+	userB :
+		1 创建密钥对 （公钥文件和私钥文件）
+[userB@localhost ~]$ gpg --gen-key （有提示就回车 ，设置保护私钥文件的密码）
+[userB@localhost ~]$ ls ~/.gnupg/
+gpg.conf           pubring.gpg   random_seed  S.gpg-agent
+private-keys-v1.d  pubring.gpg~  secring.gpg  trustdb.gpg
+[userB@localhost ~]$ 
+
+		2 导出公钥
+[userB@localhost ~]$ gpg -a --export userB > /tmp/userB.pub		
+
+	userA：
+		1 导入公钥
+[userA@localhost ~]$ gpg --import /tmp/userB.pub 
+
+		2 加密文件并共享
+[userA@localhost ~]$ gpg -e -r userB test2.txt 
+gpg: 120050E0: There is no assurance this key belongs to the named user
+
+pub  2048R/120050E0 2020-04-08 userB (student) <panglj@tedu.cn>
+ Primary key fingerprint: 16E7 0E98 CE23 3EEF 8367  A740 0E98 6999 9394 B211
+      Subkey fingerprint: 9D7C 8B18 D19C 9446 928A  CF78 9210 6FF9 1200 50E0
+
+It is NOT certain that the key belongs to the person named
+in the user ID.  If you *really* know what you are doing,
+you may answer the next question with yes.
+
+Use this key anyway? (y/N) y
+[userA@localhost ~]$ ls
+test2.txt  test2.txt.gpg  test.txt
+[userA@localhost ~]$ 
+[userA@localhost ~]$ mv test2.txt.gpg  /tmp/
+[userA@localhost ~]$
+
+		3 userB 用户解密文件
+[userB@localhost ~]$ gpg -d  /tmp/test2.txt.gpg  > b.txt
+
+You need a passphrase to unlock the secret key for
+user: "userB (student) <panglj@tedu.cn>"
+2048-bit RSA key, ID 120050E0, created 2020-04-08 (main key ID 9394B211)
+
+gpg: encrypted with 2048-bit RSA key, ID 120050E0, created 2020-04-08
+      "userB (student) <panglj@tedu.cn>"
+[userB@localhost ~]$ 
+[userB@localhost ~]$ ls
+a.txt  b.txt
+[userB@localhost ~]$ cat b.txt 
+panglijing:x:1000:1000:panglijing:/home/panglijing:/bin/bash
+userA:x:1001:1001::/home/userA:/bin/bash
+userB:x:1002:1002::/home/userB:/bin/bash
+[userB@localhost ~]$ 
