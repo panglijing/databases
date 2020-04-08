@@ -319,10 +319,173 @@ Permission denied (publickey,gssapi-keyex,gssapi-with-mic).
 Last login: Wed Apr  8 01:47:00 2020 from 192.168.2.5
 [root@web200 ~]#
 
+	
 	四、SElinux 安全防护 192.168.2.5 主机启用selinux
+		4.1  了解一下SELINUX?
+
+		4.2 启用selinux
 		[root@zabbix05 ~]# vim /etc/sysconfig/selinux
 			SELINUX=enforcing
 		:wq
 		
 	    	[root@zabbix05 ~]# touch /.autorelabel
 		[root@zabbix05 ~]# reboot
+
+
+
+		4.3 selinux的使用
+			4.3.1 查看安全上下文（标签）
+				查看文件  ls -lZ 文件名
+				查看目录	  ls  -ldZ  目录名
+				查看进程   ps aux -Z
+
+
+	        4.4 安全上下文的组成
+ 用户:角色:访问类型:选项...
+
+ system_u:object_r:passwd_file_t:s0
+ system_u:object_r:etc_t:s0
+ system_u:system_r:httpd_t:s0
+
+		4.5 selinux的常规规律
+			新创建的文件或目录会继承父目录的安全上下文
+			拷贝的文件会继承目标目录的安全上下文
+			移动的文件会保持原有的安全上下文不变。			
+
+		4.6 修改安全上下文件
+			]# chcon -t httpd_sys_content_t /var/www/html/test.html 修改单个文件
+			]# chcon -R -t httpd_sys_content_t /var/www/html 修改目录
+
+		4.7 恢复安全上下文件
+			]# restorecon /var/www/html/x.html  恢复单个文件
+			]# restorecon -R /var/www/html     恢复目录	
+
+
+		4.8 重置标签
+			]# touch /.autorelabel
+			]# reboot
+		
+	       在192.168.2.5 主机运行ftp服务，且配置允许匿名用户可以上传和下载文件
+
+[root@zabbix05 ~]# rpm -q vsftpd || yum  -y  install vsftpd
+vsftpd-3.0.2-22.el7.x86_64
+
+[root@zabbix05 ~]# mkdir /var/ftp/share
+[root@zabbix05 ~]# chmod  o+w /var/ftp/share
+
+[root@zabbix05 ~]# sed -n '29p' /etc/vsftpd/vsftpd.conf 
+anon_upload_enable=YES
+[root@zabbix05 ~]# systemctl  start vsftpd 
+[root@zabbix05 ~]# netstat  -utnlp  | grep  21
+tcp6       0      0 :::21                   :::*                    LISTEN      1021/vsftpd         
+
+[root@zabbix05 ~]# cp /etc/hosts /var/ftp/share/
+[root@zabbix05 ~]# ls -ldZ /var/ftp/
+drwxr-xr-x. root root system_u:object_r:public_content_t:s0 /var/ftp/
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# mv /root/anaconda-ks.cfg  /var/ftp/share/
+
+[root@zabbix05 ~]# ls -lZ /var/ftp/share/
+-rw-------. root root system_u:object_r:admin_home_t:s0 anaconda-ks.cfg
+-rw-r--r--. root root unconfined_u:object_r:public_content_t:s0 hosts
+[root@zabbix05 ~]#
+
+		测试2.5主机ftp服务配置：禁用seLinux后客户端在命令行上传和下载文件
+			
+[root@zabbix05 ~]# getenforce 
+Enforcing
+[root@zabbix05 ~]# setenforce 0
+[root@zabbix05 ~]# getenforce 
+Permissive
+[root@zabbix05 ~]# 
+
+[root@web100 ~]# which  ftp || yum -y install ftp   #安装提供ftp命令软件
+
+[root@web100 ~]# ftp  192.168.2.5  连接ftp服务器
+Connected to 192.168.2.5 (192.168.2.5).
+220 (vsFTPd 3.0.2)
+Name (192.168.2.5:root): ftp  用户名
+331 Please specify the password.
+Password:  没密码直接回车
+230 Login successful.
+Remote system type is UNIX.
+Using binary mode to transfer files.
+ftp> 
+ftp> pwd  显示当前所在的目录
+257 "/"
+ftp> ls  查看文件列表
+227 Entering Passive Mode (192,168,2,5,95,241).
+150 Here comes the directory listing.
+drwxr-xr-x    2 0        0               6 Aug 03  2017 pub
+drwxr-xrwx    2 0        0              42 Apr 08 10:24 share
+drwxr-xrwx    4 0        0            4096 Mar 09 23:19 upload
+226 Directory send OK.
+ftp> 
+ftp> cd share 进入共享目录
+250 Directory successfully changed.
+ftp> 
+ftp> ls  查看文件列表
+227 Entering Passive Mode (192,168,2,5,116,136).
+150 Here comes the directory listing.
+-rw-------    1 0        0            1231 Feb 04 16:23 anaconda-ks.cfg
+-rw-r--r--    1 0        0             179 Apr 08 10:23 hosts
+226 Directory send OK.
+ftp> 
+ftp> get hosts  下载文件
+local: hosts remote: hosts
+227 Entering Passive Mode (192,168,2,5,192,53).
+150 Opening BINARY mode data connection for hosts (179 bytes).
+226 Transfer complete.
+179 bytes received in 5.5e-05 secs (3254.55 Kbytes/sec)
+ftp> 
+ftp> bye 断开连接
+221 Goodbye.
+[root@web100 ~]# ls  查看下载的文件
+anaconda-ks.cfg  hosts  zabbix-3.4.4
+[root@web100 ~]# 
+
+[root@web100 ~]# ls /etc/group
+/etc/group
+[root@web100 ~]# 
+
+
+[root@web100 ~]# ftp 192.168.2.5  连接ftp服务器
+Connected to 192.168.2.5 (192.168.2.5).
+220 (vsFTPd 3.0.2)
+Name (192.168.2.5:root): ftp  用户名
+331 Please specify the password.
+Password: 没密码直接回车
+230 Login successful.
+Remote system type is UNIX.
+Using binary mode to transfer files.
+ftp> ls 查看目录列表
+227 Entering Passive Mode (192,168,2,5,113,15).
+150 Here comes the directory listing.
+drwxr-xr-x    2 0        0               6 Aug 03  2017 pub
+drwxr-xrwx    2 0        0              42 Apr 08 10:24 share
+drwxr-xrwx    4 0        0            4096 Mar 09 23:19 upload
+226 Directory send OK.
+ftp> cd share  进共享目录
+250 Directory successfully changed.
+ftp> 
+ftp> lcd /etc  切换到本机目录
+Local directory now /etc
+ftp> put group 上传文件
+local: group remote: group
+227 Entering Passive Mode (192,168,2,5,30,184).
+150 Ok to send data.
+226 Transfer complete.
+546 bytes sent in 0.000176 secs (3102.27 Kbytes/sec)
+ftp> 
+ftp> ls 查看是否上传成功
+227 Entering Passive Mode (192,168,2,5,77,126).
+150 Here comes the directory listing.
+-rw-------    1 0        0            1231 Feb 04 16:23 anaconda-ks.cfg
+-rw-------    1 14       50            546 Apr 08 10:44 group
+-rw-r--r--    1 0        0             179 Apr 08 10:23 hosts
+226 Directory send OK.
+ftp> 
+ftp> bye 断开连接
+221 Goodbye.
+[root@web100 ~]#
+		
