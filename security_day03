@@ -488,4 +488,66 @@ ftp>
 ftp> bye 断开连接
 221 Goodbye.
 [root@web100 ~]#
-		
+			4.8 selinux布尔值：（服务的功能开关）	
+			查看服务的布尔值
+				]# getsebool  -a
+				]# getsebool  -a  | grep  服务名
+
+			修改服务的布尔值	
+				]# setsebool  -P  布尔名  on|off
+ 
+	2.5主机 启用selinux 后允许匿名用户上传文件
+[root@zabbix05 ~]# getsebool  -a | grep  ftpd
+ftpd_anon_write --> off
+ftpd_connect_all_unreserved --> off
+ftpd_connect_db --> off
+ftpd_full_access --> off
+ftpd_use_cifs --> off
+ftpd_use_fusefs --> off
+ftpd_use_nfs --> off
+ftpd_use_passive_mode --> off
+[root@zabbix05 ~]# setsebool -P ftpd_anon_write on
+[root@zabbix05 ~]# setsebool -P ftpd_full_access on
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# getsebool  -a | grep  ftpd
+ftpd_anon_write --> on
+ftpd_connect_all_unreserved --> off
+ftpd_connect_db --> off
+ftpd_full_access --> on
+ftpd_use_cifs --> off
+ftpd_use_fusefs --> off
+ftpd_use_nfs --> off
+ftpd_use_passive_mode --> off
+[root@zabbix05 ~]# 
+
+		selinux启用情况下，修改了网站服务和ssh服务使用的端口号 可以让服务正常重启
+		安装提供报错信息的selinux日志程序，通过查看报错信息排除
+
+		]# yum -y install setroubleshoot*
+		]# reboot
+
+[root@zabbix05 ~]# sed -n '42p' /etc/httpd/conf/httpd.conf 
+Listen 8090
+[root@zabbix05 ~]#
+
+[root@zabbix05 ~]# netstat  -utnlp  | grep httpd
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# systemctl  start  httpd
+Job for httpd.service failed because the control process exited with error code. See "systemctl status httpd.service" and "journalctl -xe" for details.
+[root@zabbix05 ~]# 
+
+[root@zabbix05 ~]# grep "setroubleshoot" /var/log/messages | tail -1
+Apr  8 19:52:45 zabbix05 setroubleshoot: SELinux is preventing /usr/sbin/httpd from name_bind access on the tcp_socket port 8090. For complete SELinux messages run: sealert -l e3b36dce-2cf4-42d1-8d09-4b1a6e7a25d6
+[root@zabbix05 ~]#
+
+[root@zabbix05 ~]# sealert -l e3b36dce-2cf4-42d1-8d09-4b1a6e7a25d6
+
+
+]# semanage port -a -t http_port_t -p tcp 8090
+
+[root@zabbix05 ~]# getenforce 
+Enforcing
+[root@zabbix05 ~]# systemctl  start httpd
+[root@zabbix05 ~]# netstat  -utnlp  | grep httpd
+tcp6       0      0 :::8090                 :::*                    LISTEN      1782/httpd          
+[root@zabbix05 ~]# 	
