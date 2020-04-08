@@ -153,3 +153,131 @@ panglijing:x:1000:1000:panglijing:/home/panglijing:/bin/bash
 userA:x:1001:1001::/home/userA:/bin/bash
 userB:x:1002:1002::/home/userB:/bin/bash
 [userB@localhost ~]$ 
+
+		
+	1.5 gpg数字签名  时间8分钟到 16:43 
+		使用私钥签名 userB
+
+[userB@localhost ~]$ cat a.txt 
+AAAAAAAAAAA
+AAAAAAAAAAA
+[userB@localhost ~]$ gpg -b a.txt
+
+You need a passphrase to unlock the secret key for
+user: "userB (student) <panglj@tedu.cn>"
+2048-bit RSA key, ID 9394B211, created 2020-04-08
+
+[userB@localhost ~]$ ls
+a.txt  a.txt.sig  b2.txt  b.txt
+[userB@localhost ~]$ 
+[userB@localhost ~]$ mv a.txt /tmp/
+[userB@localhost ~]$ mv a.txt.sig /tmp/
+
+
+		公钥验证签名 userA
+[userA@localhost ~]$ cat /tmp/a.txt
+[userA@localhost ~]$ gpg --verify /tmp/a.txt.sig  完好的签名
+[root@localhost ~]# echo  "aaaa" >> /tmp/a.txt
+[userA@localhost ~]$ gpg --verify /tmp/a.txt.sig  已损坏的签名
+
+
+	二 AIDE入侵检测系统
+		2.1 AIDE介绍
+
+		2.2 配置入侵检测的目录
+
+[root@zabbix05 ~]# sed -i '99,312s/^/#/' /etc/aide.conf  
+[root@zabbix05 ~]# vim +98 /etc/aide.conf 
+/root/   FIPSR
+:wq
+
+[root@zabbix05 ~]# rm -rf /root/nginx-1.12.2/
+[root@zabbix05 ~]# rm -rf /root/zabbix-3.4.4/
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# ls /root/
+[root@zabbix05 ~]# echo "aaaaa" >  /root/a.txt
+[root@zabbix05 ~]# echo "bbbbb" > /root/b.txt
+[root@zabbix05 ~]# cp /etc/passwd /root/
+[root@zabbix05 ~]# ls
+a.txt  b.txt  passwd
+[root@zabbix05 ~]#
+
+[root@zabbix05 ~]# aide  --init  生成初始化信息 
+
+[root@zabbix05 ~]# ls /var/lib/aide/  查看 
+aide.db.new.gz
+[root@zabbix05 ~]# mv /var/lib/aide/aide.db.new.gz /opt/ 移走初始信息
+[root@zabbix05 ~]# ls /opt/
+aide.db.new.gz
+[root@zabbix05 ~]#
+
+[root@zabbix05 ~]# cp /opt/aide.db.new.gz /var/lib/aide/aide.db.gz  创建保存初始信息文件
+[root@zabbix05 ~]# ls /var/lib/aide/
+aide.db.gz
+[root@zabbix05 ~]#
+
+			执行与检测规则匹配的操作
+[root@zabbix05 ~]# vim /root/c.txt
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# vim /root/a.txt
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# ls
+a.txt  b.txt  c.txt  passwd
+[root@zabbix05 ~]# chown ftp:ftp b.txt
+[root@zabbix05 ~]# rm -rf passwd 
+[root@zabbix05 ~]#
+[root@zabbix05 ~]# aide --check  执行入侵检测
+AIDE 0.15.1 found differences between database and filesystem!!
+Start timestamp: 2020-04-09 01:15:13
+
+Summary:
+  Total number of files:	18
+  Added files:			1
+  Removed files:		1
+  Changed files:		3
+
+
+---------------------------------------------------
+Added files:
+---------------------------------------------------
+
+added: /root/c.txt
+
+---------------------------------------------------
+Removed files:
+---------------------------------------------------
+
+removed: /root/passwd
+
+---------------------------------------------------
+Changed files:
+---------------------------------------------------
+
+changed: /root/.viminfo
+changed: /root/a.txt
+changed: /root/b.txt
+
+---------------------------------------------------
+Detailed information about changes:
+---------------------------------------------------
+
+
+File: /root/.viminfo
+ Size     : 5634                             , 5598
+ Mtime    : 2020-04-09 01:05:19              , 2020-04-09 01:14:01
+ Ctime    : 2020-04-09 01:05:19              , 2020-04-09 01:14:01
+ Inode    : 34215231                         , 33630288
+ SHA256   : beycM1vPq2HCfX0G79uNprxPJKbHkkCC , H7ErHjpVJRqE+hXW8CJaXukqzG+LOHiW
+
+File: /root/a.txt
+ Size     : 6                                , 24
+ Mtime    : 2020-04-09 01:02:41              , 2020-04-09 01:14:01
+ Ctime    : 2020-04-09 01:02:41              , 2020-04-09 01:14:01
+ Inode    : 34215207                         , 33630285
+ SHA256   : vcJpMaz7c0sUKo1nXyBb7PJ1YNxGH1AY , gs7+Wjf289lK5Kd5I4cLixEINHaHamuY
+
+File: /root/b.txt
+ Uid      : 0                                , 14
+ Gid      : 0                                , 50
+ Ctime    : 2020-04-09 01:02:49              , 2020-04-09 01:14:18
+[root@zabbix05 ~]#
