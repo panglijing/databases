@@ -185,7 +185,7 @@ a.txt  a.txt.sig  b2.txt  b.txt
 		2.1 AIDE介绍
 
 		2.2 配置入侵检测的目录
-
+[root@zabbix05 ~]# rpm -q aide || yum -y install aide
 [root@zabbix05 ~]# sed -i '99,312s/^/#/' /etc/aide.conf  
 [root@zabbix05 ~]# vim +98 /etc/aide.conf 
 /root/   FIPSR
