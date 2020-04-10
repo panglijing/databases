@@ -343,3 +343,20 @@ File: /root/b.txt
 [root@zabbix05 ~]# 
 [root@zabbix05 ~]# tcpdump -i ens33 -c 5 -A -w  /opt/y.cap
 [root@zabbix05 ~]# tcpdump -A  -r  /opt/y.cap
+
+
+
+
+[root@zabbix05 ~]# tcpdump   -i ens33  icmp
+
+[root@zabbix05 ~]# tcpdump   -i ens33  icmp and  src host  192.168.2.100
+ 
+[root@zabbix05 ~]# tcpdump   -i ens33 tcp  prot 22
+
+[root@zabbix05 ~]# tcpdump   -i ens33  tcp  port 22  and  host 192.168.2.201 and  dst host 192.168.2.5
+
+[root@zabbix05 ~]# tcpdump   -i ens33  tcp  port 8091 or port 3306
+
+[root@zabbix05 ~]# tcpdump   -i ens33  icmp   and \( host 192.168.2.201  or host 192.168.2.100 \)
+
+[root@zabbix05 ~]# tcpdump   -i ens33  icmp   and not host 192.168.2.100
