@@ -281,3 +281,33 @@ File: /root/b.txt
  Gid      : 0                                , 50
  Ctime    : 2020-04-09 01:02:49              , 2020-04-09 01:14:18
 [root@zabbix05 ~]#
+			三 扫描与抓包
+	    3.1 扫描nmap
+		 1 nmap介绍  （nmap软件包提供 扫描命令nmap）
+  291  which  nmap
+  292  yum -y install nmap
+  293  which  nmap
+  295  nmap --help
+  296  man  nmap
+		 2 nmap命令格式 ]#nmap  [扫描类型]  [选项]  <扫描目标 ...>
+		 3 扫描类型
+			-sS，TCP SYN扫描（半开）
+			-sT，TCP 连接扫描（全开）
+			-sU，UDP扫描
+			-sP，ICMP扫描
+			-A，目标系统全面分析
+
+		 4 例子
+
+[root@zabbix05 ~]# nmap localhost
+[root@zabbix05 ~]# nmap 192.168.2.100
+[root@zabbix05 ~]# nmap -sP 192.168.2.100
+[root@zabbix05 ~]# nmap -sP 192.168.2.100,10,17
+[root@zabbix05 ~]# nmap -sP 192.168.2.100-110
+[root@zabbix05 ~]# nmap -sP 192.168.2.1-254  或   ]# nmap  -p  21-22  192.168.2.0/24
+[root@zabbix05 ~]# nmap -sP  www.baidu.com
+[root@zabbix05 ~]# nmap  -sP -n 192.168.2.200-201
+[root@zabbix05 ~]# nmap  -sS -p 6379 -n  192.168.2.200-201
+[root@zabbix05 ~]# nmap  -sS -p 20-110 -n  192.168.2.200
+[root@zabbix05 ~]# nmap  -sS -p 10050,80 -n  192.168.2.200
+[root@zabbix05 ~]# nmap -A localhost
