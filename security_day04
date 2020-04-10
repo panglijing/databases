@@ -311,3 +311,35 @@ File: /root/b.txt
 [root@zabbix05 ~]# nmap  -sS -p 20-110 -n  192.168.2.200
 [root@zabbix05 ~]# nmap  -sS -p 10050,80 -n  192.168.2.200
 [root@zabbix05 ~]# nmap -A localhost
+			3.2 抓包tcpdump：命令行抓取数据包的工具
+		基本用法	 ]# tcpdump  [选项]  [过滤条件] 
+				常见监控选项
+					-i   指定监控的网络接口
+					-A 转换为 ACSII 码，以方便阅读
+					-w 将数据包信息保存到指定文件
+					-r  从指定文件读取数据包信息
+					-c  定义抓包个数
+
+			   	 过滤条件
+					类型：host、net、port、portrange
+					方向：src、dst
+					协议：tcp、udp、ip、wlan、arp、icmp……
+					多个条件组合：and、or、not
+		tcpdump 例子  练习10分钟 到 11:02 
+[root@zabbix05 ~]# which  tcpdump
+/usr/bin/which: no tcpdump in (/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin)
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# yum -y  install tcpdump
+           
+[root@zabbix05 ~]# which  tcpdump
+/usr/sbin/tcpdump
+[root@zabbix05 ~]# 
+
+[root@zabbix05 ~]# tcpdump -i ens33
+[root@zabbix05 ~]# tcpdump -i ens33 -c 5
+[root@zabbix05 ~]# tcpdump -i ens33 -c 5 -w /opt/x.cap
+[root@zabbix05 ~]# tcpdump  -r /opt/x.cap 
+
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# tcpdump -i ens33 -c 5 -A -w  /opt/y.cap
+[root@zabbix05 ~]# tcpdump -A  -r  /opt/y.cap
