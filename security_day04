@@ -369,3 +369,14 @@ File: /root/b.txt
 [root@web100 ~]#  which mysql  || yum -y install mariadb
 [root@web100 ~]# mysql -h192.168.2.5 -uadmin -p123456
 > select  * from  mysql.user where user="admin";
+
+			 3.3 图形抓包工具wireshark
+			192.168.4.66]# yum -y  install wireshark*
+
+[root@zabbix05 ~]# tcpdump  -i  ens33 -A -w /root/mysql.cap tcp port 3306				
+[root@zabbix05 ~]# scp  /root/mysql.cap  root@192.168.4.66:/root/
+
+192.168.4.66]# 应用程序--->互联网---> wireshark---> file ---->open --->/root/mysql.cap
+	        第1个窗口  抓到的ip包  （1行代表1个包）
+		第2个窗口 ip包的包头信息
+		第3个窗口 ip包里的数据
