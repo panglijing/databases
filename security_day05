@@ -111,3 +111,41 @@ Query OK, 0 rows affected (0.00 sec)
 MariaDB [(none)]> exit
 Bye
 [root@zabbix05 ~]# mysql -uroot -p123456
+
+						mariadb优化3 ： 删除历史文件   2分钟到 17:32 
+			        ]# history -c 
+				]# rm -rf  ~/.bash_history  
+				]# rm -rf  ~/.mysql_history
+  
+			mariadb优化4 ： 数据备份
+				mysqldump/mysql 、 binlog/mysqlbinlog 、innobackupex
+				mysql主从同步   、 PXC、MHA集群
+ 	
+			mariadb优化5 ： 用户管理
+					添加访问数据新用户 
+>grant 权限列表 on  库名  to  用户@"客户端地址" identified by "密码" [with  grant option];
+>revoke  权限列表 on  库名  from 用户@"客户端地址";
+
+			通过抓包可以获知：数据库服务器是否被客户端访问及 访问的库 表 数据、 连接的用户
+	
+		2.3 TOMCAT网站服务安全
+			  2.3.1 安装软件并运行tomcat服务
+	[root@zabbix05 ~]# yum -y  install  java-1.8.0-openjdk	
+	[root@zabbix05 ~]# tar -zxvf apache-tomcat-8.0.30.tar.gz			
+	[root@zabbix05 ~]# mv apache-tomcat-8.0.30 /usr/local/tomcat
+[root@zabbix05 ~]# /usr/local/tomcat/bin/startup.sh 
+Using CATALINA_BASE:   /usr/local/tomcat
+Using CATALINA_HOME:   /usr/local/tomcat
+Using CATALINA_TMPDIR: /usr/local/tomcat/temp
+Using JRE_HOME:        /usr
+Using CLASSPATH:       /usr/local/tomcat/bin/bootstrap.jar:/usr/local/tomcat/bin/tomcat-juli.jar
+Tomcat started.
+[root@zabbix05 ~]#
+
+[root@zabbix05 ~]# netstat  -utnlp  | grep  8080
+tcp6       0      0 :::8080                 :::*                    LISTEN      2967/java           
+[root@zabbix05 ~]# echo "hahaha" > /usr/local/tomcat/webapps/ROOT/test.html
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# curl http://localhost:8080/test.html
+hahaha
+[root@zabbix05 ~]# 
