@@ -360,3 +360,12 @@ File: /root/b.txt
 [root@zabbix05 ~]# tcpdump   -i ens33  icmp   and \( host 192.168.2.201  or host 192.168.2.100 \)
 
 [root@zabbix05 ~]# tcpdump   -i ens33  icmp   and not host 192.168.2.100
+
+[root@zabbix05 ~]# mysql
+> grant  all on  *.*  to  admin@"%" identified by "123456";
+> exit;
+[root@zabbix05 ~]# tcpdump  -i  ens33 -A  tcp port 3306
+	
+[root@web100 ~]#  which mysql  || yum -y install mariadb
+[root@web100 ~]# mysql -h192.168.2.5 -uadmin -p123456
+> select  * from  mysql.user where user="admin";
