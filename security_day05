@@ -1,0 +1,113 @@
++++++++++++++监控与安全_day05_学习任务 192.168.2.5
+	一、系统审计 （audit服务）
+		1.1 服务介绍
+
+		1.2 安装软件并启动服务  时间8分钟到 15:53 
+			[root@zabbix05 ~]# rpm -q audit  | yum  -y  install audit
+			[root@zabbix05 ~]# rpm -q audit 
+			audit-2.8.1-3.el7.x86_64
+			[root@zabbix05 ~]# systemctl  status auditd  //先看一下服务的状态
+			[root@zabbix05 ~]# systemctl  start auditd
+			[root@zabbix05 ~]# systemctl  enable auditd
+[root@zabbix05 ~]# grep "log_file" /etc/audit/auditd.conf 
+log_file = /var/log/audit/audit.log
+
+:wq
+			[root@zabbix05 ~]# wc -l  /var/log/audit/audit.log 
+4331 /var/log/audit/audit.log
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# aureport  //生成审计报表
+
+
+		1.3 自定义审计规则
+			查看自定义审计规则
+			]# auditctl --help
+			1.3.1 命令行定义 临时生效      练习时间8分钟到 16:16
+
+命令格式 ： ]# auditctl  -w  路径  -p 权限  -k  规则名称
+
+
+[root@zabbix05 ~]# auditctl -l
+No rules
+[root@zabbix05 ~]# auditctl -w /etc/passwd -p wa -k xxx_plj
+[root@zabbix05 ~]# auditctl -w /var/lib/mysql  -p wa -k plj_dba
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# which  fdisk
+/usr/sbin/fdisk
+[root@zabbix05 ~]# auditctl -w /usr/sbin/fdisk  -p x  -k plj_fdisk
+[root@zabbix05 ~]# auditctl -l
+-w /etc/passwd -p wa -k xxx_plj
+-w /var/lib/mysql -p wa -k plj_dba
+-w /usr/sbin/fdisk -p x -k plj_fdisk
+[root@zabbix05 ~]# 
+			1.3.2 编辑配置定义审计规则，永久有效
+
+[root@zabbix05 ~]# auditctl -l >> /etc/audit/rules.d/audit.rules 
+[root@zabbix05 ~]# tail -5 /etc/audit/rules.d/audit.rules 
+-f 1
+
+-w /etc/passwd -p wa -k xxx_plj
+-w /var/lib/mysql -p wa -k plj_dba
+-w /usr/sbin/fdisk -p x -k plj_fdisk
+[root@zabbix05 ~]# 			
+
+		        1.3.3 测试  时间10分钟到 16:41  到  16:50 讲新知识
+				用户登录系统后执行与审计规则匹配的操作
+				]# useradd  bob1
+
+				系统管理员root用户查看审计日志
+				]# ausearch -k  xxx_plj
+
+				违反的规则？ key="xxx_plj"
+				执行操作的用户是谁？uid=0
+				执行操作的时间？time->Sat Apr 11 00:23:13 2020
+				执行的结果？success=yes
+				执行的命令是啥？  comm="useradd"
+
+	
+	二、服务安全
+		2.1 网站服务安全（ NGINX ）
+
+		2.2 数据库服务安全 （mairadb）  
+			2.2.1 安全优化配置
+[root@zabbix05 ~]# mysqladmin -hlocalhost -uroot  password  "123456"  //设置登录密码
+[root@zabbix05 ~]# mysql 没密码不允许登录了 
+ERROR 1045 (28000): Access denied for user 'root'@'localhost' (using password: NO)
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# mysql -uroot -p123456  //使用设置的密码登录
+			
+[root@zabbix05 ~]# mysql_secure_installation  //执行优化脚本
+输入旧密码 123456
+配置新root密码 （2次输入要相同）
+Remove anonymous users（删除匿名账户）Y
+Disallow root login remotely?（禁止root远程登录）Y
+Remove test database（删除测试数据库）Y
+Reload privilege（刷新权限）Y
+
+
+			mariadb优化2 ：
+				定期修改数据库管理员root本机登录密码
+				]#mysql  -uroot -p654321
+				>set password for  root@"localhost"=password("redhat");
+MariaDB [(none)]> select user , host ,password from mysql.user where user="root";
++------+-----------+-------------------------------------------+
+| user | host      | password                                  |
++------+-----------+-------------------------------------------+
+| root | localhost | *84BB5DF4823DA319BBF86C99624479A198E6EEE9 |
+| root | 127.0.0.1 | *2A032F7C5BA932872F0F045E0CF6B53CF702F2C5 |
+| root | ::1       | *2A032F7C5BA932872F0F045E0CF6B53CF702F2C5 |
++------+-----------+-------------------------------------------+
+3 rows in set (0.00 sec)
+
+MariaDB [(none)]> update mysql.user set password=password("123456")
+    -> where
+    -> user="root" and host="localhost";
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+MariaDB [(none)]> flush privileges;
+Query OK, 0 rows affected (0.00 sec)
+
+MariaDB [(none)]> exit
+Bye
+[root@zabbix05 ~]# mysql -uroot -p123456
