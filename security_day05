@@ -149,3 +149,53 @@ tcp6       0      0 :::8080                 :::*                    LISTEN      
 [root@zabbix05 ~]# curl http://localhost:8080/test.html
 hahaha
 [root@zabbix05 ~]# 
+
+		2.1 网站服务安全（ NGINX ）
+
+
+			 优化配置1： 按需安装（最小安装原则）
+]# vim  /usr/local/nginx/conf/nginx.conf
+   server {
+	autoindex on ;
+:wq
+
+]#/usr/local/nginx/sbin/nginx  -t
+
+]#/usr/local/nginx/sbin/nginx -s stop
+]#/usr/local/nginx/sbin/nginx
+
+[root@zabbix05 nginx-1.12.2]# mkdir /usr/local/nginx/html/game
+[root@zabbix05 nginx-1.12.2]# echo "xxx" > /usr/local/nginx/html/game/a.html
+[root@zabbix05 nginx-1.12.2]# echo "xxx2" > /usr/local/nginx/html/game/b.html
+[root@zabbix05 nginx-1.12.2]# echo "xxx3" > /usr/local/nginx/html/game/c.html
+[root@zabbix05 nginx-1.12.2]# ls /usr/local/nginx/html/game/
+a.html  b.html  c.html
+[root@zabbix05 nginx-1.12.2]#
+
+
+http://192.168.2.5/game  自动列出目录写的所有网页
+
+   94  tar -zxvf /var/ftp/upload/nginx-1.12.2.tar.gz   重新新编译安装
+   95  ls
+   96  cd nginx-1.12.2/
+  117  ./configure --without-http_autoindex_module
+  118  make
+  119  make install
+  120  /usr/local/nginx/sbin/nginx  -V
+
+]# vim  /usr/local/nginx/conf/nginx.conf
+   server {
+	#autoindex on ;
+:wq
+
+]#/usr/local/nginx/sbin/nginx  -t
+
+]#/usr/local/nginx/sbin/nginx -s stop
+]#/usr/local/nginx/sbin/nginx
+
+
+http://192.168.2.5/game 报错
+
+]# echo  "xxx" > /usr/local/nginx/html/game/index.html  写首页
+
+]#curl http://localhost 正常
