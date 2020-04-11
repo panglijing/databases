@@ -198,4 +198,4 @@ http://192.168.2.5/game 报错
 
 ]# echo  "xxx" > /usr/local/nginx/html/game/index.html  写首页
 
-]#curl http://localhost 正常
+]#curl http:////192.168.2.5/game 正常
