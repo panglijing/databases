@@ -199,3 +199,32 @@ http://192.168.2.5/game 报错
 ]# echo  "xxx" > /usr/local/nginx/html/game/index.html  写首页
 
 ]#curl http:////192.168.2.5/game 正常
+
+			nginx优化2： 修改软件名
+
+[root@web100 ~]# curl -I  http://192.168.2.5/game/  没修改前
+HTTP/1.1 200 OK
+Server: nginx/1.12.2
+
+
+]# /usr/local/nginx/sbin/nginx -s stop
+
+]# vim +49 nginx-1.12.2/src/http/ngx_http_header_filter_module.c 	
+static u_char ngx_http_server_string[] = "Server: tomcat" CRLF;
+static u_char ngx_http_server_full_string[] = "Server: tomcat" CRLF;
+static u_char ngx_http_server_build_string[] = "Server: tomcat" CRLF;
+:wq
+
+[root@zabbix05 ~]# /usr/local/nginx/sbin/nginx -V
+nginx version: nginx/1.12.2
+built by gcc 4.8.5 20150623 (Red Hat 4.8.5-28) (GCC) 
+configure arguments: --without-http_autoindex_module
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# cd nginx-1.12.2/
+[root@zabbix05 nginx-1.12.2]# ./configure --without-http_autoindex_module && make && make install 
+
+]# /usr/local/nginx/sbin/nginx 
+
+[root@web100 ~]# curl -I  http://192.168.2.5/game/  修改后
+HTTP/1.1 200 OK
+Server: tomcat		
