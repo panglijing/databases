@@ -1,0 +1,41 @@
++++++++++++++监控与安全_day06_学习任务
+	一、iptables防火墙服务介绍  firewalld(RHEL7/8)  RHEL6(iptables)
+		
+[root@zabbix05 ~]# systemctl  status firewalld
+[root@zabbix05 ~]# systemctl  stop firewalld
+[root@zabbix05 ~]# systemctl  disable firewalld
+
+[root@zabbix05 ~]# yum -y  install  iptables-services
+[root@zabbix05 ~]# systemctl  start iptables
+[root@zabbix05 ~]# systemctl  enable iptables
+		1.2 iptables防火墙服务的组成？
+			4张表：功能分类
+				包过滤功能 filter表
+				地址转换   nat表
+				打标记     mangle表
+				状态跟踪   raw表
+
+			5条链：数据包传输的方向
+				匹配进入防火墙主机的ip包   INPUT链 
+				匹配从防火墙主机出去的ip包  OUTPUT链
+				匹配经过防火墙主机的ip包    FORWARD链
+				匹配路由前的Ip包		   PREROUTING链
+				匹配路由后的Ip包            POSTROUTING链
+		1.3 管理防火墙服务命令iptables的使用
+
+			命令格式：
+			]# iptables -t  表  选项  链名  匹配条件 -j 处理动作
+
+		        防火墙服务的逻辑关系 ： iptables服务 -->表 --->链 ----> 规则 ---> 处理动作
+
+
+			规则匹配顺序
+				顺序比对，匹配即停止（LOG除外）
+				若无任何匹配，则按该链的默认策略处理
+ 
+			处理动作包括哪些？
+				放行 ACCEPT
+				丢弃 DROP
+				拒绝 REJECT
+				源地址转换 SNAT
+				目标地址转换 DNAT 
