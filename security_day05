@@ -397,4 +397,43 @@ nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
 [root@zabbix05 nginx-1.12.2]# /usr/local/nginx/sbin/nginx -s stop
 [root@zabbix05 nginx-1.12.2]# /usr/local/nginx/sbin/nginx
 
+			三、Linux安全之打补丁
+		3.1 什么是打补丁
+		3.2 创建补丁文件  2.5
+			给单个文件创建补丁文件
 
+[root@zabbix05 ~]#vim test1.sh 
+#!/bin/bash
+echo  "hell wrld"
+:wq
+
+[root@zabbix05 ~]# cp test1.sh  test2.sh
+[root@zabbix05 ~]# vim  test2.sh 
+#!/bin/bash
+echo "hello boy"
+echo  "xxxhhhdcte"
+echo  "hell world"
+:wq
+
+[root@zabbix05 ~]# diff  -u  test1.sh  test2.sh 
+--- test1.sh	2020-04-11 23:48:13.041105132 +0800
++++ test2.sh	2020-04-11 23:48:54.433105399 +0800
+@@ -1,2 +1,4 @@
+ #!/bin/bash
+-echo  "hell wrld"
++echo "hello boy"
++echo  "xxxhhhdcte"
++echo  "hell world"
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# diff  -u  test1.sh  test2.sh  > bd.patch
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# cat bd.patch 
+--- test1.sh	2020-04-11 23:48:13.041105132 +0800
++++ test2.sh	2020-04-11 23:48:54.433105399 +0800
+@@ -1,2 +1,4 @@
+ #!/bin/bash
+-echo  "hell wrld"
++echo "hello boy"
++echo  "xxxhhhdcte"
++echo  "hell world"
+[root@zabbix05 ~]# 
