@@ -228,3 +228,32 @@ configure arguments: --without-http_autoindex_module
 [root@web100 ~]# curl -I  http://192.168.2.5/game/  修改后
 HTTP/1.1 200 OK
 Server: tomcat		
+
+
+		
+ 			14:00上课
+			nginx优化3： 限制并发 （限制同1台机器发起的多个访问 只处理几个）
+			2.100  ----> 2.5 
+				100
+				10
+				6
+			2.201 ------> 2.5
+
+				6
+]# vim /usr/local/nginx/conf/nginx.conf
+http {
+        limit_req_zone $binary_remote_addr zone=one:10m rate=1r/s;
+
+	server {
+        limit_req zone=one burst=5;
+:wq
+[root@zabbix05 nginx-1.12.2]# /usr/local/nginx/sbin/nginx -t
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+[root@zabbix05 nginx-1.12.2]# 
+[root@zabbix05 nginx-1.12.2]# /usr/local/nginx/sbin/nginx -s stop
+[root@zabbix05 nginx-1.12.2]# /usr/local/nginx/sbin/nginx
+[root@zabbix05 nginx-1.12.2]#
+
+[root@web100 ~]# ab -n 10  -c  10 http://192.168.2.5/game/
+[root@web100 ~]# ab -n 100  -c  100 http://192.168.2.5/game/
