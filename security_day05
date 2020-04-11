@@ -149,6 +149,88 @@ tcp6       0      0 :::8080                 :::*                    LISTEN      
 [root@zabbix05 ~]# curl http://localhost:8080/test.html
 hahaha
 [root@zabbix05 ~]# 
+			
+						tomcat优化配置1: 隐藏软件名和版本号
+]# yum -y install java-1.8.0-openjdk-devel
+]# cd lib/  ;  jar -xf catalina.jar
+				
+[root@zabbix05 util]# cd /usr/local/tomcat/lib/org/apache/catalina/util
+
+[root@zabbix05 util]# tail -3  ServerInfo.properties 
+server.info=Nginx/9.0.30
+server.number=9.0.30.0
+server.built=Dec 1 2015 22:30:46 UTC
+[root@zabbix05 util]# 
+
+[root@zabbix05 util]# vim  +69  /usr/local/tomcat/conf/server.xml 
+    <Connector port="8080" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443" server="apache"/>
+:wq
+
+]# /usr/local/tomcat/bin/shutdown.sh
+]# /usr/local/tomcat/bin/startup.sh
+
+[root@web100 ~]# curl -I  http://192.168.2.5:8080
+HTTP/1.1 200 OK
+Content-Type: text/html;charset=UTF-8
+Transfer-Encoding: chunked
+Date: Sat, 11 Apr 2020 09:43:55 GMT
+Server: apache
+
+[root@web100 ~]# 
+[root@web100 ~]# curl -I  http://192.168.2.5:8080/test.html
+HTTP/1.1 200 OK
+Accept-Ranges: bytes
+ETag: W/"7-1586541281000"
+Last-Modified: Fri, 10 Apr 2020 17:54:41 GMT
+Content-Type: text/html
+Content-Length: 7
+Date: Sat, 11 Apr 2020 09:44:08 GMT
+Server: apache
+
+[root@web100 ~]#
+
+[root@web100 ~]# curl  http://192.168.2.5:8080/test2.html
+<!DOCTYPE html><html><head><title>Nginx/9.0.30 - Error report</title><style type="text/css">H1 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:22px;} H2 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:16px;} H3 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:14px;} BODY {font-family:Tahoma,Arial,sans-serif;color:black;background-color:white;} B {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;} P {font-family:Tahoma,Arial,sans-serif;background:white;color:black;font-size:12px;}A {color : black;}A.name {color : black;}.line {height: 1px; background-color: #525D76; border: none;}</style> </head><body><h1>HTTP Status 404 - /test2.html</h1><div class="line"></div><p><b>type</b> Status report</p><p><b>message</b> <u>/test2.html</u></p><p><b>description</b> <u>The requested resource is not available.</u></p><hr class="line"><h3>Nginx/9.0.30</h3></body></html>[root@web100 ~]# 
+			
+			tomcat优化配置2: 让服务已普通账户身份启动
+
+[root@zabbix05 util]# /usr/local/tomcat/bin/shutdown.sh 
+ 
+[root@zabbix05 util]# useradd tomcat
+[root@zabbix05 util]# chown -R tomcat:tomcat /usr/local/tomcat/
+
+[root@zabbix05 util]# su - tomcat  -c '/usr/local/tomcat/bin/startup.sh' 
+Using CATALINA_BASE:   /usr/local/tomcat
+Using CATALINA_HOME:   /usr/local/tomcat
+Using CATALINA_TMPDIR: /usr/local/tomcat/temp
+Using JRE_HOME:        /
+Using CLASSPATH:       /usr/local/tomcat/bin/bootstrap.jar:/usr/local/tomcat/bin/tomcat-juli.jar
+Tomcat started.
+[root@zabbix05 util]# netstat -utnlp | grep 8080
+tcp6       0      0 :::8080                 :::*                    LISTEN      2004/java           
+
+[root@zabbix05 util]# ps -aux | grep java
+tomcat     2004 24.8 15.4 2169800 74652 ?       Sl   17:51   0:07 //bin/java -Djava.util.logging.config.file=/usr/local/tomcat/conf/logging.properties -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Djava.endorsed.dirs=/usr/local/tomcat/endorsed -classpath /usr/local/tomcat/bin/bootstrap.jar:/usr/local/tomcat/bin/tomcat-juli.jar -Dcatalina.base=/usr/local/tomcat -Dcatalina.home=/usr/local/tomcat -Djava.io.tmpdir=/usr/local/tomcat/temp org.apache.catalina.startup.Bootstrap start
+root       2028  0.0  0.2 112720   968 pts/0    R+   17:52   0:00 grep --color=auto java
+
+[root@zabbix05 util]# vim /etc/rc.local
+su - tomcat  -c '/usr/local/tomcat/bin/startup.sh'
+:wq
+		tomcat优化配置3：删除默认的测试页面
+
+[root@zabbix05 ~]# rm -rf /usr/local/tomcat/webapps/*
+
+[root@zabbix05 ~]# mkdir /usr/local/tomcat/webapps/ROOT
+
+[root@zabbix05 ~]# echo  "xxxx" > /usr/local/tomcat/webapps/ROOT/index.html
+
+[root@zabbix05 ~]# curl http://localhost:8080
+yyyy
+[root@zabbix05 ~]# 
+
+
 
 		2.1 网站服务安全（ NGINX ）
 
