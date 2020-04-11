@@ -437,3 +437,98 @@ echo  "hell world"
 +echo  "xxxhhhdcte"
 +echo  "hell world"
 [root@zabbix05 ~]# 
+
+		
+		3.3 给文件打补丁  2.100
+
+[root@web100 ~]# which patch
+/usr/bin/which: no patch in (/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin)
+[root@web100 ~]# 
+[root@web100 ~]# yum -y install patch
+
+[root@web100 ~]# which patch
+/usr/bin/patch
+[root@web100 ~]#
+
+打补丁命令格式 ]# patch -p数字 <  目录名/名称.patch
+	 数字： 删除重复目录的个数
+
+撤销补丁命令格式 ]# patch -RE <  目录名/名称.patch
+
+			给单个文件打补丁
+[root@zabbix05 ~]# scp test1.sh  root@192.168.2.100:/root/
+                                                    
+[root@zabbix05 ~]# scp bd.patch  root@192.168.2.100:/root/
+                                                 
+[root@web100 ~]# cat test1.sh 
+#!/bin/bash
+echo  "hell wrld"
+[root@web100 ~]# cat bd.patch 
+--- test1.sh	2020-04-11 23:48:13.041105132 +0800
++++ test2.sh	2020-04-11 23:48:54.433105399 +0800
+@@ -1,2 +1,4 @@
+ #!/bin/bash
+-echo  "hell wrld"
++echo "hello boy"
++echo  "xxxhhhdcte"
++echo  "hell world"
+[root@web100 ~]# 
+[root@web100 ~]# patch  -p0 < bd.patch 
+patching file test1.sh
+[root@web100 ~]# cat test1.sh 
+#!/bin/bash
+echo "hello boy"
+echo  "xxxhhhdcte"
+echo  "hell world"
+[root@web100 ~]# 
+[root@web100 ~]# patch  -RE < bd.patch 
+patching file test1.sh
+
+[root@web100 ~]# cat test1.sh 
+#!/bin/bash
+echo  "hell wrld"
+[root@web100 ~]#	
+
+
+			给目录打补丁（一起给多给文件打补丁）
+[root@web100 demo]# cd /demo/source1/
+[root@web100 source1]# 
+[root@web100 source1]# patch  -p3 < /opt/bd2.patch 
+patching file find
+patching file test.sh
+patching file tmp.txt
+[root@web100 source1]# ls
+find  test.sh  tmp.txt
+[root@web100 source1]# cat test.sh 
+#!/bin/bash
+echo  "aaaaa"
+echo "xxxhhhhxxx"
+echo "lllllxxxx"
+[root@web100 source1]# wc -l find 
+633 find
+[root@web100 source1]# 
+
+[root@web100 source1]# ls
+find  test.sh  tmp.txt
+[root@web100 source1]# 
+[root@web100 source1]# 
+[root@web100 source1]# patch  -RE < /opt/bd2.patch  撤销补丁
+patching file find
+patching file test.sh
+patching file tmp.txt
+[root@web100 source1]# ls
+find  test.sh
+[root@web100 source1]# cat test.sh 
+#!/bin/bash
+echo  "aaaaa"
+[root@web100 source1]# wc -l find 
+632 find
+[root@web100 source1]#
+
+
+root@web100 source1]# cd /
+[root@web100 /]# patch  -p1  < /opt/bd2.patch 
+patching file demo/source1/find
+patching file demo/source1/test.sh
+patching file demo/source1/tmp.txt
+[root@web100 /]#
