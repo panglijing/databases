@@ -339,3 +339,62 @@ nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
 
 [root@web100 ~]# ab -n 10  -c  10 http://192.168.2.5/game/
 [root@web100 ~]# ab -n 100  -c  100 http://192.168.2.5/game/
+
+			nginx优化4： 拒绝非法访问
+				NGINX网站服务器支持的访问方式 :  GET POST   PUT   HEAD  DELETE
+ ]# vim /usr/local/nginx/conf/nginx.conf
+            server {
+
+                if ($request_method !~ ^(GET|POST)$ ) {
+                     return 444;
+               }
+:wq
+		
+[root@zabbix05 nginx-1.12.2]# /usr/local/nginx/sbin/nginx -t
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+[root@zabbix05 nginx-1.12.2]# 
+[root@zabbix05 nginx-1.12.2]# /usr/local/nginx/sbin/nginx -s stop
+[root@zabbix05 nginx-1.12.2]# 
+[root@zabbix05 nginx-1.12.2]# /usr/local/nginx/sbin/nginx
+
+
+[root@web100 ~]# curl  -i -X GET http://192.168.2.5/game/a.html
+HTTP/1.1 200 OK
+Server: tomcat
+Date: Sat, 11 Apr 2020 14:48:59 GMT
+Content-Type: text/html
+Content-Length: 4
+Last-Modified: Sat, 11 Apr 2020 10:35:16 GMT
+Connection: keep-alive
+ETag: "5e919d64-4"
+Accept-Ranges: bytes
+
+xxx
+[root@web100 ~]# 
+[root@web100 ~]# curl  -i -X HEAD http://192.168.2.5/game/a.html
+curl: (52) Empty reply from server
+[root@web100 ~]# 
+        ]# curl  --help
+
+	-i  获取协议头部信息
+	-X  访问方式
+
+			nginx优化5： 防止buffer溢出
+
+	]# vim /usr/local/nginx/conf/nginx.conf
+		http {
+ client_body_buffer_size 1k;
+    client_header_buffer_size 1k;
+    client_max_body_size 1k;
+large_client_header_buffers 2 1k;
+:wq
+
+[root@zabbix05 nginx-1.12.2]# /usr/local/nginx/sbin/nginx -t
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+
+[root@zabbix05 nginx-1.12.2]# /usr/local/nginx/sbin/nginx -s stop
+[root@zabbix05 nginx-1.12.2]# /usr/local/nginx/sbin/nginx
+
+
