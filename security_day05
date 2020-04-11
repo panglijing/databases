@@ -490,6 +490,36 @@ echo  "hell wrld"
 [root@web100 ~]#	
 
 
+						给目录创建补丁文件（把多个文件的补丁信息放一起）
+			命令格式： diff  -uraN  旧目录  新目录
+
+[root@zabbix05 ~]# 环境准备
+  199  mkdir /demo
+  200  cd /demo/
+  201  mkdir source1
+  202  cd source1/
+  203  vim  test.sh  内容随便
+  
+  205  which find
+  206  cp /usr/bin/find ./
+
+  214  scp -r /demo/source1/  root@192.168.2.100:/demo/
+
+  216  mkdir /demo/source2
+  217  cp source1/test.sh  /demo/source2/
+  218  cp source1/find  /demo/source2/
+  219  cd /demo/source2
+  222  echo "11111" >> find 
+
+  225  vim test.sh  随便添加些新内容
+  
+  229  vim tmp.txt  创建新文件
+
+[root@zabbix05 ~]# diff -urNa /demo/source1 /demo/source2  > bd2.patch  创建目录补丁文件
+[root@zabbix05 ~]# scp  bd2.patch  root@192.168.2.100:/opt/  发送目录补丁文件
+
+
+
 			给目录打补丁（一起给多给文件打补丁）
 [root@web100 demo]# cd /demo/source1/
 [root@web100 source1]# 
