@@ -65,3 +65,38 @@
 [root@zabbix05 ~]# iptables -t filter  -I INPUT 2 -p tcp --dport 80 -j ACCEPT
 [root@zabbix05 ~]# iptables -t filter  -P INPUT DROP
 [root@zabbix05 ~]# iptables-save > /etc/sysconfig/iptables
+
+		环境准备
+192.168.4.50]# 设置网关
+  294  route -n  查看网关
+  295  route add  default gw  192.168.4.5 设置网关
+
+  296  route -n
+  297  route del  default gw  192.168.4.5 删除
+  298  route -n
+
+  299  route add  default gw  192.168.4.5
+
+防火墙192.168.2.5主机：开启内核路由转发功能
+[root@zabbix05 ~]# cat  /proc/sys/net/ipv4/ip_forward
+0
+[root@zabbix05 ~]# echo  1 >   /proc/sys/net/ipv4/ip_forward
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# cat  /proc/sys/net/ipv4/ip_forward
+1
+[root@zabbix05 ~]# echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf
+
+
+192.168.2.100]# 设置网关
+  294  route -n
+  295  route add  default gw  192.168.2.5
+
+  296  route -n
+  297  route del  default gw  192.168.2.5
+  298  route -n
+
+  299  route add  default gw  192.168.2.5
+
+测试 
+[root@zabbix05 ~]# tcpdump  -i ens33 icmp
+[root@web100 ~]# ping  192.168.4.50
