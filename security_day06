@@ -100,3 +100,55 @@
 测试 
 [root@zabbix05 ~]# tcpdump  -i ens33 icmp
 [root@web100 ~]# ping  192.168.4.50
+				环境准备   10分钟 到  11:43 
+192.168.4.50]# 设置网关
+  294  route -n  查看网关
+  295  route add  default gw  192.168.4.5 设置网关
+
+  296  route -n
+  297  route del  default gw  192.168.4.5 删除
+  298  route -n
+
+  299  route add  default gw  192.168.4.5
+
+防火墙192.168.2.5主机：开启内核路由转发功能
+[root@zabbix05 ~]# cat  /proc/sys/net/ipv4/ip_forward
+0
+[root@zabbix05 ~]# echo  1 >   /proc/sys/net/ipv4/ip_forward
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# cat  /proc/sys/net/ipv4/ip_forward
+1
+[root@zabbix05 ~]# echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf
+
+
+192.168.2.100]# 设置网关
+  294  route -n
+  295  route add  default gw  192.168.2.5
+
+  296  route -n
+  297  route del  default gw  192.168.2.5
+  298  route -n
+
+  299  route add  default gw  192.168.2.5
+
+测试 
+[root@zabbix05 ~]# tcpdump  -i ens33 icmp
+[root@web100 ~]# ping  192.168.4.50
+
+
+	二、匹配条件
+		基本匹配条件  -p （udp  / tcp  /icmp）
+			      -s  (192.168.2.1  /   192.168.2.0/24)  -d   (192.168.2.1  /   192.168.2.0/24)
+			      --sport ( 80 22  3306  53 110 )  --dport ( 80 22  3306  53 110)
+				-i  (ens33  ens38  eth0  eth1 )  -o (ens33  ens38  eth0  eth1 )
+			      --icmp-type  ICMP类型 (请求包  应答包)
+
+		扩展匹配条件
+
+
+	三、filter表的使用
+			主机型防火墙（使用 filter 表的 INPUT链 ）
+			192.168.2.5主机自己保护自己
+			]# iptables -t filter  -P INPUT DROP
+			]# iptables  -t filter  -F
+			]# iptables  -t  filter  -A INPUT  -s 192.168.4.0/24 -p  tcp  --dport 22  -j ACCEPT
