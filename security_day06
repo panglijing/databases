@@ -152,3 +152,17 @@
 			]# iptables -t filter  -P INPUT DROP
 			]# iptables  -t filter  -F
 			]# iptables  -t  filter  -A INPUT  -s 192.168.4.0/24 -p  tcp  --dport 22  -j ACCEPT
+			[root@zabbix05 ~]# iptables -t filter -A INPUT -p  tcp  --dport 80 -j ACCEPT
+			[root@zabbix05 ~]# iptables -t filter -I INPUT -p tcp  --dport 3306 -j ACCEPT
+			
+[root@zabbix05 ~]# iptables -t filter -nL INPUT --line-numbers
+Chain INPUT (policy DROP)
+num  target     prot opt source               destination         
+1    ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0            tcp dpt:3306
+2    ACCEPT     tcp  --  192.168.4.0/24       0.0.0.0/0            tcp dpt:22
+3    ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0            tcp dpt:80
+[root@zabbix05 ~]#
+
+[root@zabbix05 ~]# iptables-save  > /etc/sysconfig/iptables
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# cat /etc/sysconfig/iptables
