@@ -39,3 +39,29 @@
 				拒绝 REJECT
 				源地址转换 SNAT
 				目标地址转换 DNAT 
+				
+			查看命令的帮助信息
+				]# iptables --help
+				]# man iptables
+
+			常用选项的使用： -L -n  -D -A  -I  -F  -P --line-numbers
+
+   24  iptables -t filter  -L
+   25  iptables -t filter  -nL
+   26  iptables -t filter  -nL --line-numbers
+   27  iptables -t filter  -nL INPUT --line-numbers
+   28  iptables  -nL INPUT --line-numbers
+   29  iptables  -nL 
+   30  iptables -t nat  -nL INPUT --line-numbers
+   31  iptables -t nat  -nL 
+   32  iptables -t mangle  -nL 
+   33  iptables -t raw  -nL 
+]# iptables -t filter -D INPUT 4				
+]# iptables -t filter -F INPUT
+]# iptables -t filter -F
+
+[root@zabbix05 ~]# iptables -t filter -A INPUT -p tcp --dport 22 -j ACCEPT
+[root@zabbix05 ~]# iptables -t filter -I INPUT  -p icmp  -j ACCEPT
+[root@zabbix05 ~]# iptables -t filter  -I INPUT 2 -p tcp --dport 80 -j ACCEPT
+[root@zabbix05 ~]# iptables -t filter  -P INPUT DROP
+[root@zabbix05 ~]# iptables-save > /etc/sysconfig/iptables
