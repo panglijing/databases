@@ -218,7 +218,7 @@ num  target     prot opt source               destination
 [root@zabbix05 ~]# iptables -t filter -I FORWARD 5 -p tcp --dport 80  -m iprange --src-range 192.168.4.50-192.168.4.60   -j DROP
 [root@zabbix05 ~]#
 
-[root@zabbix05 ~]#iptables -t filter -A FORWARD -p tcp -m mulitport --dports 22,80,3306,6379,8080 -j ACCEPT
+[root@zabbix05 ~]#iptables -t filter -A FORWARD -p tcp -m multiport --dports 22,80,3306,6379,8080 -j ACCEPT
 [root@zabbix05 ~]#iptables -t filter -A FORWARD -p tcp -m multiport --dports 22,80,3306,6379,8080 -j ACCEPT
 
 把用基本匹配条件的匹配服务的规则删除
