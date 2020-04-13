@@ -184,6 +184,32 @@ num  target     prot opt source               destination
 [root@zabbix05 ~]# iptables -t filter  -I INPUT -p icmp --icmp-type=echo-reply  -j ACCEPT
 [root@zabbix05 ~]#
 
+		网络型防火墙 （使用 filter 表的 FORWARD链） 练习15分钟 到 15:50
+			
+
+[root@zabbix05 ~]# iptables -t filter -P  FORWARD DROP		
+[root@zabbix05 ~]# iptables -t filter -A FORWARD -p tcp --sport 80 -j ACCEPT
+[root@zabbix05 ~]# iptables -t filter -A FORWARD -p tcp --dport 80 -j ACCEPT		  
+[root@zabbix05 ~]# iptables -t filter -A FORWARD -p tcp --sport 22 -j ACCEPT
+[root@zabbix05 ~]# iptables -t filter -A FORWARD -p tcp --dport 22 -j ACCEPT	
+
+[root@zabbix05 ~]# iptables -t filter  -nL FORWARD --line-numbers
+Chain FORWARD (policy DROP)
+num  target     prot opt source               destination         
+1    ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0            tcp dpt:22
+2    ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0            tcp spt:22
+
+
+3    ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0            tcp spt:80
+4    ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0            tcp dpt:80
+
+
+[root@zabbix05 ~]#
+
+[root@zabbix05 ~]# iptables -t filter -A FORWARD -p tcp --dport 3306 -j ACCEPT
+[root@zabbix05 ~]# iptables -t filter -A FORWARD -p tcp --sport 3306 -j ACCEPT
+
+		
 				
 		扩展匹配 例子
 			
