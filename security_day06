@@ -232,3 +232,35 @@ num  target     prot opt source               destination
 4    ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0            multiport dports 22,80,3306,6379,8080
 5    ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0            multiport sports 22,80,3306,6379,8080
 [root@zabbix05 ~]#
+			
+	写防火墙规则
+[root@zabbix05 ~]# iptables -t nat -nL  POSTROUTING
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination         
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# 
+
+[root@zabbix05 ~]# iptables -t nat -A  POSTROUTING -s 192.168.4.0/24 -p tcp --dport 80 -j SNAT --to-source 192.168.2.5
+
+公网地址不固定情况下规则的写法
+
+]# iptables -t nat -A  POSTROUTING   -s 192.168.4.0/24   -o ens33   -j   MASQUERADE
+
+
+[root@zabbix05 ~]# iptables -t nat -nL  POSTROUTING
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination         
+SNAT       tcp  --  192.168.4.0/24       0.0.0.0/0            tcp dpt:80 to:192.168.2.5
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# iptables -t nat -nL  POSTROUTING --line-numbers
+Chain POSTROUTING (policy ACCEPT)
+num  target     prot opt source               destination         
+1    SNAT       tcp  --  192.168.4.0/24       0.0.0.0/0            tcp dpt:80 to:192.168.2.5
+[root@zabbix05 ~]# 
+[root@zabbix05 ~]# iptables-save  > /etc/sysconfig/iptables
+[root@zabbix05 ~]# 
+
+
+测试方法1  [root@web100 ~]# tail -f  /etc/httpd/logs/access_log
+测试方法2  [root@zabbix05 ~]# tcpdump  -i ens33  tcp  port 80	
+客户端访问 [root@host50 ~]# curl  http://192.168.2.101
