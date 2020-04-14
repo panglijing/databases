@@ -319,7 +319,19 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 		    
 		    7.1 测试NFS共享配置
 				1 在NFS30的共享目录下编写网页文件
-				2 访问网站web33  或 web44  看到相同的网页内容
+		[root@nfs30 ~]# showmount  -e localhost
+Export list for localhost:
+/sitedir *
+[root@nfs30 ~]# 
+[root@nfs30 ~]# echo  "hahaxixi" > /sitedir/index.html
+[root@nfs30 ~]# 
+			2 访问网站web33  或 web44  看到相同的网页内容			
+[root@maxscale77 ~]# curl  http://192.168.4.44
+hahaxixi
+[root@maxscale77 ~]# curl  http://192.168.4.33
+hahaxixi
+[root@maxscale77 ~]#			
+				
 
 			
 		     7.2 测试数据读写分离配置
