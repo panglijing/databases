@@ -229,6 +229,43 @@ MaxScale> exit
 
 				5.2.3  启动NFS服务
 
+    8  fdisk  -l
+    9  fdisk  /dev/sdb
+   10  fdisk  -l /dev/sdb
+   11  pvcreate  /dev/sdb1
+   12  vgcreate  vg0
+   13  vgcreate  vg0 /dev/sdb1
+   14  vgscan 
+   15  vgdisplay vg0
+   16  lvcreate  -n lv0 -l 1279 vg0
+   17  lvscan 
+   18  mkfs.xfs /dev/vg0/lv0
+   19  blkid /dev/vg0/lv0 
+   20  mkdir /sitedir
+   21  vim /etc/fstab 
+   /dev/vg0/lv0	 /sitedir  xfs  defaults        0 0
+   :wq
+   
+   22  mount -a
+   23  mount  | grep  "/sitedir"
+
+   28  yum -y  install  nfs-utils  rpcbind
+
+   30  vim /etc/exports
+   /sitedir	*(rw)
+   :wq
+   
+
+   32  chmod  o+w /sitedir/
+   33  systemctl  start rpcbind
+   34  systemctl  enable rpcbind
+   
+   35  systemctl  start nfs
+   36  systemctl  enable nfs
+ [root@nfs30 ~]# showmount  -e localhost
+Export list for localhost:
+/sitedir *
+[root@nfs30 ~]# 
 		
 	
 		六、配置网站服务器（192.168.4.33  和 192.168.4.44）
