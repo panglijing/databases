@@ -52,11 +52,46 @@
 		三、配置mysql 主从同步 （ 时间20分钟 到14:48 ）
 			3.1 配置主服务器192.168.4.11 ，配置步骤如下：
 				启用binlog日志(日志名master11) 、用户授权(repluser 、123qqq...A) 、查看日志信息
-				
+		
+	mysql> grant replication slave on *.* to repluser@"%" identified by "123qqq...A";
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+
+mysql> show master status;
++-----------------+----------+--------------+------------------+-------------------+
+| File            | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |
++-----------------+----------+--------------+------------------+-------------------+
+| master11.000001 |      441 |              |                  |                   |
++-----------------+----------+--------------+------------------+-------------------+
+1 row in set (0.03 sec)
+
+mysql> 	
+		
 			3.2 配置从服务器192.168.4.22 ，配置步骤如下：
 				指定server_id  重启mysql服务 、 管理员root登录指定主服务器信息、
 				启动slave进程 、查看状态(io 线程 和 sql线程 是yes )
+mysql> show slave status;
+Empty set (0.00 sec)
 
+mysql> change master to master_host="192.168.4.11" , master_user="repluser" , master_password="123qqq...A",
+    -> master_log_file="master11.000001" , master_log_pos=441;
+Query OK, 0 rows affected, 2 warnings (0.01 sec)
+
+mysql> start slave;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> exit
+mysql> exit
+Bye
+
+[root@mysql22 ~]# mysql -uroot -p123qqq...A -e 'show slave status \G ' | grep  192.168.4.11
+mysql: [Warning] Using a password on the command line interface can be insecure.
+                  Master_Host: 192.168.4.11
+[root@mysql22 ~]# 
+[root@mysql22 ~]# mysql -uroot -p123qqq...A -e 'show slave status \G ' | grep  -i "yes"
+mysql: [Warning] Using a password on the command line interface can be insecure.
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+[root@mysql22 ~]# 
 
 	        四、配置数据读写分离服务器（192.168.4.77)	
 			4.1 安装maxscale软件
