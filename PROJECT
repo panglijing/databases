@@ -95,12 +95,130 @@ mysql: [Warning] Using a password on the command line interface can be insecure.
 
 	        四、配置数据读写分离服务器（192.168.4.77)	
 			4.1 安装maxscale软件
-			4.2 修改主配置文件 mymon  myuser
+			4.2 修改主配置文件
+			
+	[root@maxscale77 ~]# vim /etc/maxscale.cnf
+[root@maxscale77 ~]# grep -v  '#' /etc/maxscale.cnf
+
+
+[maxscale]
+threads=auto
+
+
+[server1]
+type=server
+address=192.168.4.11
+port=3306
+protocol=MySQLBackend
+
+[server2]
+type=server
+address=192.168.4.22
+port=3306
+protocol=MySQLBackend
+
+
+[MySQL Monitor]
+type=monitor
+module=mysqlmon
+servers=server1,server2
+user=pljmon
+passwd=123qqq...A
+monitor_interval=10000
+
+
+
+
+
+[Read-Write Service]
+type=service
+router=readwritesplit
+servers=server1,server2
+user=pljrou
+passwd=123qqq...A
+max_slave_connections=100%
+
+
+[MaxAdmin Service]
+type=service
+router=cli
+
+
+
+[Read-Write Listener]
+type=listener
+service=Read-Write Service
+protocol=MySQLClient
+port=4006
+
+[MaxAdmin Listener]
+type=listener
+service=MaxAdmin Service
+protocol=maxscaled
+socket=default
+port=4016
+[root@maxscale77 ~]# 		
+			
 			4.3 配置数据库服务器（根据主配置文件的设置添加授权用户）
+[root@mysq111 ~]# mysql -uroot -p123qqq...A -e 'grant select on mysql.*  to  pljrou@"%" identified by "123qqq...A"'
+mysql: [Warning] Using a password on the command line interface can be insecure.
+
+[root@mysq111 ~]# 
+[root@mysq111 ~]# mysql -uroot -p123qqq...A -e 'grant replication slave, replication client on *.*  to  pljmon@"%" identified by "123qqq...A"'
+mysql: [Warning] Using a password on the command line interface can be insecure.
+
+[root@mysq111 ~]# 
+[root@mysq111 ~]# mysql -uroot -p123qqq...A -e 'select user from mysql.user'
+mysql: [Warning] Using a password on the command line interface can be insecure.
++-----------+
+| user      |
++-----------+
+| pljmon    |
+| pljrou    |
+| repluser  |
+| mysql.sys |
+| root      |
++-----------+
+[root@mysq111 ~]# 		
+			
+[root@mysql22 ~]# mysql -uroot -p123qqq...A -e 'select user from mysql.user'
+mysql: [Warning] Using a password on the command line interface can be insecure.
++-----------+
+| user      |
++-----------+
+| pljmon    |
+| pljrou    |
+| mysql.sys |
+| root      |
++-----------+
+[root@mysql22 ~]# 		
 			4.4 启动读写分离服务
+			
+[root@maxscale77 ~]# maxscale  -f /etc/maxscale.cnf
+[root@maxscale77 ~]# ls /var/log/maxscale/maxscale.log 
+/var/log/maxscale/maxscale.log
+[root@maxscale77 ~]# 
+[root@maxscale77 ~]# ps -C maxscale
+   PID TTY          TIME CMD
+  1496 ?        00:00:00 maxscale
+[root@maxscale77 ~]# 
+[root@maxscale77 ~]# netstat  -utnlp  | grep  maxscale
+tcp6       0      0 :::4006                 :::*                    LISTEN      1496/maxscale       
+tcp6       0      0 :::4016                 :::*                    LISTEN      1496/maxscale       
+[root@maxscale77 ~]# 		
 			4.5 查看监控状态 
 			
-		
+[root@maxscale77 ~]# maxadmin  -uadmin -pmariadb  -P4016
+MaxScale> list servers
+Servers.
+-------------------+-----------------+-------+-------------+--------------------
+Server             | Address         | Port  | Connections | Status              
+-------------------+-----------------+-------+-------------+--------------------
+server1            | 192.168.4.11    |  3306 |           0 | Master, Running
+server2            | 192.168.4.22    |  3306 |           0 | Slave, Running
+-------------------+-----------------+-------+-------------+--------------------
+MaxScale> exit
+[root@maxscale77 ~]# 	
 
 		五、配置NFS服务器（192.168.4.30） 时间17分钟到 15:45 
 			5.1 安装 提供服务的软件
