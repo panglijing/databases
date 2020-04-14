@@ -336,13 +336,135 @@ hahaxixi
 			
 		     7.2 测试数据读写分离配置
 				1 在主数据库服务器授权客户端连接用户
-				  grant insert , select  on  gamedb.*  to  admin@"%" identified by "123qqq...A";
+	[root@mysq111 ~]# mysql -uroot -p123qqq...A -e 'create database bbsdb'
+mysql: [Warning] Using a password on the command line interface can be insecure.
+[root@mysq111 ~]# 
+[root@mysq111 ~]# 
+[root@mysq111 ~]# mysql -uroot -p123qqq...A -e 'create table bbsdb.user(name char(10))'
+mysql: [Warning] Using a password on the command line interface can be insecure.
+[root@mysq111 ~]# 
+[root@mysq111 ~]# mysql -uroot -p123qqq...A -e 'grant select , insert on bbsdb.* to admin@"%" identified by "123qqq...A"'
+mysql: [Warning] Using a password on the command line interface can be insecure.
+[root@mysq111 ~]# 
 				2 在从服务器查看授权用户
+				
+	[root@mysql22 ~]# mysql -uroot -p123qqq...A -e 'select user from mysql.user'
+mysql: [Warning] Using a password on the command line interface can be insecure.
++-----------+
+| user      |
++-----------+
+| admin     |
+| pljmon    |
+| pljrou    |
+| mysql.sys |
+| root      |
++-----------+
+[root@mysql22 ~]# mysql -uroot -p123qqq...A -e 'desc bbsdb.user'
+mysql: [Warning] Using a password on the command line interface can be insecure.
++-------+----------+------+-----+---------+-------+
+| Field | Type     | Null | Key | Default | Extra |
++-------+----------+------+-----+---------+-------+
+| name  | char(10) | YES  |     | NULL    |       |
++-------+----------+------+-----+---------+-------+
+[root@mysql22 ~]# 			
+				
+				
 
 				3 在网站服务器web33 web44  上，在命令行连接读写分离服务器 存/查数据
+[root@web33 ~]# which  mysql
+/usr/bin/which: no mysql in (/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin)
+[root@web33 ~]# 
+[root@web33 ~]# yum -y  install mariadb			
+	[root@web33 ~]# mysql -h192.168.4.77 -P4006 -uadmin -p123qqq...A
+[root@web33 ~]# mysql -h192.168.4.77 -P4006 -uadmin -p123qqq...A
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MySQL connection id is 1500
+Server version: 10.0.0 2.1.2-maxscale MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2017, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MySQL [(none)]> show grants;
++--------------------------------------------------+
+| Grants for admin@%                               |
++--------------------------------------------------+
+| GRANT USAGE ON *.* TO 'admin'@'%'                |
+| GRANT SELECT, INSERT ON `bbsdb`.* TO 'admin'@'%' |
++--------------------------------------------------+
+2 rows in set (0.05 sec)
+
+MySQL [(none)]> insert into bbsdb.user values("bob");
+Query OK, 1 row affected (3.64 sec)
+
+MySQL [(none)]> select  * from bbsdb.user;
++------+
+| name |
++------+
+| bob  |
++------+
+1 row in set (0.04 sec)
+
+MySQL [(none)]> 						
 
 				4 测试maxscle服务的读写分离功能
  
+ [root@mysql22 ~]# mysql -uroot -p123qqq...A -e 'insert into bbsdb.user values("aaa")'
+mysql: [Warning] Using a password on the command line interface can be insecure.
+[root@mysql22 ~]# mysql -uroot -p123qqq...A -e 'select * from bbsdb.user'
+mysql: [Warning] Using a password on the command line interface can be insecure.
++------+
+| name |
++------+
+| bob  |
+| tom  |
+| aaa  |
++------+
+[root@mysql22 ~]# 
+ [root@mysq111 ~]# mysql -uroot -p123qqq...A -e 'select  * from bbsdb.user'
+mysql: [Warning] Using a password on the command line interface can be insecure.
++------+
+| name |
++------+
+| bob  |
+| tom  |
++------+
+[root@mysq111 ~]#
+
+[root@web33 ~]# mysql -h192.168.4.77 -P4006 -uadmin -p123qqq...A
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MySQL connection id is 1500
+Server version: 10.0.0 2.1.2-maxscale MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2017, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MySQL [(none)]> select  * from bbsdb.user;
++------+
+| name |
++------+
+| bob  |
+| tom  |
+| aaa  |
++------+
+3 rows in set (0.01 sec)
+
+MySQL [(none)]> insert into bbsdb.user values("john");
+Query OK, 1 row affected (0.00 sec)
+
+MySQL [(none)]> select  * from bbsdb.user;
++------+
+| name |
++------+
+| bob  |
+| tom  |
+| aaa  |
+| john |
++------+
+4 rows in set (0.00 sec)
+
+MySQL [(none)]> 
 		八、搭建监控服务器 (192.168.4.55)
 			8.1 配置监控服务器
 				1  部署运行环境
