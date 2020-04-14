@@ -273,6 +273,47 @@ Export list for localhost:
                         6.2 挂载nfs共享目录
 			6.3 查看挂载
 			6.4 启动网站服务
+[root@web44 ~]# yum -y install nfs-utils  httpd		
+[root@web44 ~]# which  showmount
+/usr/sbin/showmount
+[root@web44 ~]# 
+[root@web44 ~]# showmount  -e 192.168.4.30
+Export list for 192.168.4.30:
+/sitedir *
+[root@web44 ~]# ls /var/www/html/
+[root@web44 ~]# 
+[root@web44 ~]# vim /etc/fstab 
+192.168.4.30:/sitedir  /var/www/html	nfs             defaults        0 0
+[root@web44 ~]# mount -a
+[root@web44 ~]# 
+[root@web44 ~]# mount  | grep  "/var/www/html"
+192.168.4.30:/sitedir on /var/www/html type nfs4 (rw,relatime,vers=4.1,rsize=65536,wsize=65536,namlen=255,hard,proto=tcp,port=0,timeo=600,retrans=2,sec=sys,clientaddr=192.168.4.44,local_lock=none,addr=192.168.4.30)
+[root@web44 ~]# 
+
+[root@web44 ~]# systemctl  start httpd
+[root@web44 ~]# netstat  -utnlp  | grep 80
+tcp6       0      0 :::80                   :::*                    LISTEN      1785/httpd          
+
+
+
+[root@web33 ~]# 
+
+    8  yum -y install nfs-utils
+    9  showmount  -e 192.168.4.30
+   10  vim /etc/fstab 
+   192.168.4.30:/sitedir  /var/www/html	nfs             defaults        0 0
+[root@web33 ~]# mount -a
+[root@web33 ~]# 
+[root@web33 ~]# 
+[root@web33 ~]# mount | grep  "/var/www/html"
+192.168.4.30:/sitedir on /var/www/html type nfs4 (rw,relatime,vers=4.1,rsize=65536,wsize=65536,namlen=255,hard,proto=tcp,port=0,timeo=600,retrans=2,sec=sys,clientaddr=192.168.4.33,local_lock=none,addr=192.168.4.30)
+[root@web33 ~]# 
+[root@web33 ~]# 
+[root@web33 ~]# systemctl   start httpd
+[root@web33 ~]# 
+[root@web33 ~]# netstat  -utnlp  | grep  80
+tcp6       0      0 :::80                   :::*                    LISTEN      1801/httpd          
+[root@web33 ~]#
 
 		七、测试配置
 		    
