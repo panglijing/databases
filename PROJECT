@@ -33,6 +33,21 @@
 			2.4 数据库管理登录并修改登录密码 
 			2.5 使用新密码登录数据库服务
 
+   21  tar -xvf /var/ftp/upload/mysql-5.7.17.tar 
+   22  ls
+   23  yum -y  install mysql-community-*.rpm
+   24  blkid /dev/vg0/lv0
+   25  vim /etc/fstab 
+   26  mount -a
+   27  mount | grep  "/var/lib/mysql"
+   28  ls /var/lib/mysql
+   29  systemctl  start mysqld
+   30  ls /var/lib/mysql
+   31  systemctl  enable mysqld
+   32  grep  password "/var/log/mysqld.log" 
+   33  mysql -uroot -p'qOpeHCiH5)li'
+   34  mysql -uroot -p123qqq...A
+   
 		
 		三、配置mysql 主从同步 （ 时间20分钟 到14:48 ）
 			3.1 配置主服务器192.168.4.11 ，配置步骤如下：
